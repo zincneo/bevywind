@@ -16,13 +16,14 @@
           version = "0.1.0";
           src = ./.;
 
+          cargoBuildType = "release";
+
           cargoLock = {
-            lockFile = ./Cargo.lock;
-            allowBuiltinFetchGit = true;
+            lockFile = ./bevywind-lsp/Cargo.lock;
           };
 
-          cargoBuildFlags = [ "--package" "bevywind-lsp" ];
-          cargoTestFlags = [ "--package" "bevywind-lsp" ];
+          cargoBuildFlags = [ "--manifest-path" "bevywind-lsp/Cargo.toml" ];
+          cargoTestFlags = [ "--manifest-path" "bevywind-lsp/Cargo.toml" ];
 
           meta.mainProgram = "bevywind-lsp";
         };
