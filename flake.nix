@@ -1,30 +1,45 @@
 {
-  description = "bevy runtime environment";
+  description = "Bevywind UI style macros and language server";
+
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
   outputs = { self, nixpkgs }:
     let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-      buildPackages = with pkgs; [
-        clang
-        pkg-config
-      ];
-      runtimePackages = with pkgs; [
-        wayland
-        libxkbcommon
-        xkeyboard-config
-        vulkan-loader
-        alsa-lib
-        udev
-      ];
+      systems = [ "x86_64-linux" "aarch64-linux" ];
+      forEachSystem = f:
+        nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = buildPackages ++ runtimePackages;
-        shellHook = ''
-          export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath runtimePackages}:$LD_LIBRARY_PATH"
-          export XKB_CONFIG_ROOT="${pkgs.xkeyboard-config}/share/X11/xkb"
-        '';
-      };
+      packages = forEachSystem (pkgs: {
+        bevywind-lsp = pkgs.rustPlatform.buildRustPackage {
+          pname = "bevywind-lsp";
+          version = "0.1.0";
+          src = ./.;
+
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+            allowBuiltinFetchGit = true;
+          };
+
+          cargoBuildFlags = [ "--package" "bevywind-lsp" ];
+          cargoTestFlags = [ "--package" "bevywind-lsp" ];
+        };
+
+        default = self.packages.${pkgs.stdenv.hostPlatform.system}.bevywind-lsp;
+      });
+
+      devShells = forEachSystem (pkgs: {
+        default = pkgs.mkShell {
+          packages = with pkgs; [
+            rustc
+            cargo
+            rustfmt
+            clippy
+            rust-analyzer
+            pkg-config
+            clang
+          ];
+        };
+      });
     };
 }

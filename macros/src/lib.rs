@@ -1,56 +1,61 @@
-mod dimension;
-
+use bevywind_core::{Property, Value, parse_classes};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 
 /// Creates a style scene for the current Bevy entity.
-///
-/// The style string is parsed at compile time and expanded into fields on a
-/// `bevy::ui::Node`.
 #[proc_macro]
-pub fn style(input: TokenStream) -> TokenStream {
-    match parse_input(input) {
-        Ok(classes) => match parse_classes(&classes) {
-            Ok(fields) => quote! {
-                ::bevy::scene::bsn! {
-                    Node {
-                        #(#fields),*
-                    }
-                }
-            }
-            .into(),
-            Err(message) => compile_error(message),
-        },
-        Err(message) => compile_error(message),
-    }
-}
-
-fn parse_input(input: TokenStream) -> Result<String, String> {
+pub fn bstyle(input: TokenStream) -> TokenStream {
     let tokens: TokenStream2 = input.into();
-    let literal = syn::parse2::<syn::LitStr>(tokens).map_err(|_| {
-        String::from(
-            "style! expects a non-empty string literal, for example `style!(\"h-10px\")`",
-        )
-    })?;
-    let classes = literal.value();
-
+    if syn::parse2::<syn::LitStr>(tokens.clone()).is_ok() {
+        return compile_error(
+            "bstyle! accepts style tokens, not strings; use style_runtime for runtime strings",
+        );
+    }
+    let classes = tokens
+        .to_string()
+        .replace(" - ", "-")
+        .replace("- ", "-")
+        .replace(" -", "-");
     if classes.trim().is_empty() {
-        return Err("style! expects at least one style utility".into());
+        return compile_error("bstyle! expects at least one style utility");
     }
 
-    Ok(classes)
+    let rules = match parse_classes(&classes) {
+        Ok(rules) => rules,
+        Err(error) => return compile_error(error.to_string()),
+    };
+
+    let fields = rules.iter().map(|rule| {
+        let field = match rule.property {
+            Property::Height => quote! { height },
+            Property::Width => quote! { width },
+            Property::MinHeight => quote! { min_height },
+            Property::MinWidth => quote! { min_width },
+            Property::MaxHeight => quote! { max_height },
+            Property::MaxWidth => quote! { max_width },
+        };
+        let value = match rule.value {
+            Value::Pixels(value) => quote! { { ::bevy::ui::px(#value) } },
+            Value::Percent(value) => quote! { { ::bevy::ui::percent(#value) } },
+            Value::ViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
+            Value::ViewportHeight(value) => quote! { { ::bevy::ui::vh(#value) } },
+        };
+        quote! { #field: #value }
+    });
+
+    quote! {
+        ::bevy::scene::bsn! {
+            Node {
+                #(#fields),*
+            }
+        }
+    }
+    .into()
 }
 
-fn parse_classes(classes: &str) -> Result<Vec<TokenStream2>, String> {
-    classes
-        .split_whitespace()
-        .map(dimension::parse)
-        .collect()
-}
-
-fn compile_error(message: String) -> TokenStream {
-    let message = syn::LitStr::new(&message, proc_macro2::Span::call_site());
+fn compile_error(message: impl Into<String>) -> TokenStream {
+    let message = syn::LitStr::new(&message.into(), proc_macro2::Span::call_site());
     quote! {
         compile_error!(#message);
     }

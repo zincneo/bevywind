@@ -1,9 +1,10 @@
 //! Tailwind-inspired styling utilities for Bevy UI.
 
 use bevy::scene::{ResolveContext, ResolvedScene, Scene, SceneFunction};
-use bevy::ui::{Node, Val, percent, px, vh, vw};
+use bevy::ui::{Node, percent, px, vh, vw};
+use bevywind_core::{Property, Value, parse_class};
 
-pub use bevywind_macros::style;
+pub use bevywind_macros::bstyle;
 
 /// Parses a dynamic style class string at runtime and returns a scene patch.
 ///
@@ -17,51 +18,24 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
             let node = scene.get_or_insert_template::<Node>(context);
 
             for class in classes.split_whitespace() {
-                let (field, value) = if let Some(value) = class.strip_prefix("max-h-") {
-                    ("max_height", value)
-                } else if let Some(value) = class.strip_prefix("max-w-") {
-                    ("max_width", value)
-                } else if let Some(value) = class.strip_prefix("min-h-") {
-                    ("min_height", value)
-                } else if let Some(value) = class.strip_prefix("min-w-") {
-                    ("min_width", value)
-                } else if let Some(value) = class.strip_prefix("h-") {
-                    ("height", value)
-                } else if let Some(value) = class.strip_prefix("w-") {
-                    ("width", value)
-                } else {
+                let Ok(rule) = parse_class(class, 0) else {
                     continue;
                 };
 
-                let value: Option<Val> = match value {
-                    "full" => Some(percent(100u16)),
-                    value if value.ends_with("px") => value
-                        .strip_suffix("px")
-                        .and_then(|value| value.parse::<u16>().ok())
-                        .map(px),
-                    value if value.ends_with('%') => value
-                        .strip_suffix('%')
-                        .and_then(|value| value.parse::<u16>().ok())
-                        .map(percent),
-                    value if value.ends_with('w') => value
-                        .strip_suffix('w')
-                        .and_then(|value| value.parse::<u16>().ok())
-                        .map(vw),
-                    value if value.ends_with('h') => value
-                        .strip_suffix('h')
-                        .and_then(|value| value.parse::<u16>().ok())
-                        .map(vh),
-                    _ => None,
+                let value = match rule.value {
+                    Value::Pixels(value) => px(value),
+                    Value::Percent(value) => percent(value),
+                    Value::ViewportWidth(value) => vw(value),
+                    Value::ViewportHeight(value) => vh(value),
                 };
 
-                match (field, value) {
-                    ("height", Some(value)) => node.height = value,
-                    ("width", Some(value)) => node.width = value,
-                    ("min_height", Some(value)) => node.min_height = value,
-                    ("min_width", Some(value)) => node.min_width = value,
-                    ("max_height", Some(value)) => node.max_height = value,
-                    ("max_width", Some(value)) => node.max_width = value,
-                    _ => {}
+                match rule.property {
+                    Property::Height => node.height = value,
+                    Property::Width => node.width = value,
+                    Property::MinHeight => node.min_height = value,
+                    Property::MinWidth => node.min_width = value,
+                    Property::MaxHeight => node.max_height = value,
+                    Property::MaxWidth => node.max_width = value,
                 }
             }
         },

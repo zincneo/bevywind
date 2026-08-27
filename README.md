@@ -8,11 +8,11 @@
 
 ```rust
 use bevy::prelude::*;
-use bevywind::style;
+use bevywind::bstyle;
 
 fn scene() -> impl Scene {
     bsn! {
-        style!("w-full h-full")
+        bstyle!(w-full h-full)
 
         Children [
             Text("Hello")
@@ -21,17 +21,17 @@ fn scene() -> impl Scene {
 }
 ```
 
-`style!` 是过程宏。传入的样式字符串会在编译期解析，解析失败时会产生编译期错误：
+`bstyle!` 是过程宏。样式 token 会在编译期解析，解析失败时会产生编译期错误：
 
 ```rust
-style!("h-10px w-50%")
+bstyle!(h-10px w-50%)
 ```
 
-它只能接收非空字符串字面量，不支持空调用：
+`bstyle!` 只接受样式 token，不接受字符串；它要求至少有一个样式，不支持空调用：
 
 ```rust
-style! {}       // 不支持
-style!("")      // 不支持
+bstyle! {}       // 不支持
+bstyle!("")      // 不支持
 ```
 
 ## 动态样式
@@ -49,6 +49,42 @@ fn scene(classes: &String) -> impl Scene {
 ```
 
 `style_runtime` 接收实现 `AsRef<str>` 的值，例如 `&str`、`String` 和 `&String`。动态样式会在运行时解析。
+
+## LSP
+
+仓库包含独立的 `bevywind-lsp` 可执行程序，为 Rust 文件中的 token-style `bstyle!(...)` 提供样式合法性错误提示。它不是 `bevywind` 库的依赖。
+
+构建：
+
+```bash
+cargo build -p bevywind-lsp --release
+```
+
+安装到 Cargo 的可执行程序目录：
+
+```bash
+cargo install --path lsp
+```
+
+Helix 可以在 `~/.config/helix/languages.toml` 中配置：
+
+```toml
+[language-server.bevywind-lsp]
+command = "bevywind-lsp"
+
+[[language]]
+name = "rust"
+language-servers = [
+    { name = "bevywind-lsp", only-features = ["diagnostics"] },
+    "rust-analyzer",
+]
+```
+
+随后即可使用：
+
+```rust
+bstyle!(h-100px w-50w min-h-50%)
+```
 
 ## 可用样式
 
@@ -74,7 +110,7 @@ fn scene(classes: &String) -> impl Scene {
 最小和最大尺寸使用与高度、宽度相同的格式：
 
 ```rust
-style!("min-h-100px min-w-20% max-h-80w max-w-90h")
+bstyle!(min-h-100px min-w-20% max-h-80w max-w-90h)
 ```
 
 它们分别对应 Bevy `Node` 的 `min_height`、`min_width`、`max_height` 和 `max_width` 属性。

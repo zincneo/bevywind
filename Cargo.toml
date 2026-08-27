@@ -3,11 +3,17 @@ name = "bevywind"
 version = "0.1.0"
 edition = "2024"
 
+[workspace]
+resolver = "3"
+members = [".", "core", "macros", "lsp"]
+default-members = ["."]
+
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", default-features = false, features = [
     "bevy_scene",
     "bevy_ui",
 ] }
+bevywind-core = { path = "core" }
 bevywind-macros = { path = "macros" }
 
 [features]
