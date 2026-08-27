@@ -3,7 +3,19 @@ use quote::quote;
 
 /// Parses width and height utilities from the style class string.
 pub(super) fn parse(class: &str) -> Result<TokenStream, String> {
-    let Some((name, value)) = class.split_once('-') else {
+    let (field, value) = if let Some(value) = class.strip_prefix("max-h-") {
+        ("max_height", value)
+    } else if let Some(value) = class.strip_prefix("max-w-") {
+        ("max_width", value)
+    } else if let Some(value) = class.strip_prefix("min-h-") {
+        ("min_height", value)
+    } else if let Some(value) = class.strip_prefix("min-w-") {
+        ("min_width", value)
+    } else if let Some(value) = class.strip_prefix("h-") {
+        ("height", value)
+    } else if let Some(value) = class.strip_prefix("w-") {
+        ("width", value)
+    } else {
         return Err(format!("invalid dimension utility `{class}`"));
     };
 
@@ -32,11 +44,15 @@ pub(super) fn parse(class: &str) -> Result<TokenStream, String> {
         }
     };
 
-    match name {
-        "h" => Ok(quote! { height: #field_value }),
-        "w" => Ok(quote! { width: #field_value }),
-        _ => Err(format!("unsupported dimension utility `{class}`")),
-    }
+    Ok(match field {
+        "height" => quote! { height: #field_value },
+        "width" => quote! { width: #field_value },
+        "min_height" => quote! { min_height: #field_value },
+        "min_width" => quote! { min_width: #field_value },
+        "max_height" => quote! { max_height: #field_value },
+        "max_width" => quote! { max_width: #field_value },
+        _ => unreachable!(),
+    })
 }
 
 fn parse_number(number: &str, value: &str) -> Result<u16, String> {

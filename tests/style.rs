@@ -20,7 +20,13 @@ fn percent_size_style_is_a_node_scene() {
 
 #[test]
 fn viewport_size_style_is_a_node_scene() {
-    accepts_scene(style!("h-10w w-20w h-30h w-40h"));
+    accepts_scene(style!("h-10w w-20w"));
+    accepts_scene(style!("h-30h w-40h"));
+}
+
+#[test]
+fn constrained_size_style_is_a_node_scene() {
+    accepts_scene(style!("min-h-10px min-w-20% max-h-30w max-w-40h"));
 }
 
 #[test]

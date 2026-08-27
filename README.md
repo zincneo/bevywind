@@ -70,3 +70,11 @@ fn scene(classes: &String) -> impl Scene {
 | `w-80h` | `width: vh(80)` | 宽度为视口高度的 80% |
 
 数字部分按 `u16` 解析，因此必须是非负整数，且不能超过 `u16` 的范围。
+
+最小和最大尺寸使用与高度、宽度相同的格式：
+
+```rust
+style!("min-h-100px min-w-20% max-h-80w max-w-90h")
+```
+
+它们分别对应 Bevy `Node` 的 `min_height`、`min_width`、`max_height` 和 `max_width` 属性。
