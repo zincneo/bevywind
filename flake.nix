@@ -23,6 +23,8 @@
 
           cargoBuildFlags = [ "--package" "bevywind-lsp" ];
           cargoTestFlags = [ "--package" "bevywind-lsp" ];
+
+          meta.mainProgram = "bevywind-lsp";
         };
 
         default = self.packages.${pkgs.stdenv.hostPlatform.system}.bevywind-lsp;
