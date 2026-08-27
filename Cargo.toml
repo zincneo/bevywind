@@ -1,0 +1,16 @@
+[package]
+name = "bevywind"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", default-features = false, features = [
+    "bevy_scene",
+    "bevy_ui",
+] }
+bevywind-macros = { path = "macros" }
+
+[features]
+# Enables the full Bevy UI application stack for future runtime/integration tests.
+# Compile-time macro tests do not need this feature and do not create a window.
+test-ui = ["bevy/ui"]
