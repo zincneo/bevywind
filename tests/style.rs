@@ -35,6 +35,14 @@ fn constrained_size_style_is_a_node_scene() {
 }
 
 #[test]
+fn flex_style_is_a_node_scene() {
+    accepts_scene(bstyle!(flex-row flex-wrap justify-center items-center));
+    accepts_scene(bstyle!(flex-col-reverse items-start justify-between));
+    accepts_scene(bstyle!(flex-center));
+    accepts_scene(bstyle!(flex-row flex-wrap content-center));
+}
+
+#[test]
 fn runtime_style_is_a_scene() {
     let classes = String::from("h-10px w-20%");
     accepts_scene(style_runtime(&classes));

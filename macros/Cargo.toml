@@ -8,6 +8,6 @@ proc-macro = true
 
 [dependencies]
 bevywind-core = { path = "../core" }
-proc-macro2 = "1"
+proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
 syn = { version = "2", features = ["parsing"] }

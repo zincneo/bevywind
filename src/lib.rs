@@ -1,8 +1,11 @@
 //! Tailwind-inspired styling utilities for Bevy UI.
 
 use bevy::scene::{ResolveContext, ResolvedScene, Scene, SceneFunction};
-use bevy::ui::{Node, percent, px, vh, vw};
-use bevywind_core::{Property, Value, parse_class};
+use bevy::ui::Node;
+use bevywind_core::Property;
+
+mod dimension;
+mod flex;
 
 pub use bevywind_macros::bstyle;
 
@@ -17,25 +20,19 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
         move |context: &mut ResolveContext, scene: &mut ResolvedScene| {
             let node = scene.get_or_insert_template::<Node>(context);
 
-            for class in classes.split_whitespace() {
-                let Ok(rule) = parse_class(class, 0) else {
-                    continue;
-                };
+            let Ok(rules) = bevywind_core::parse_classes(&classes) else {
+                return;
+            };
 
-                let value = match rule.value {
-                    Value::Pixels(value) => px(value),
-                    Value::Percent(value) => percent(value),
-                    Value::ViewportWidth(value) => vw(value),
-                    Value::ViewportHeight(value) => vh(value),
-                };
-
+            for rule in rules {
                 match rule.property {
-                    Property::Height => node.height = value,
-                    Property::Width => node.width = value,
-                    Property::MinHeight => node.min_height = value,
-                    Property::MinWidth => node.min_width = value,
-                    Property::MaxHeight => node.max_height = value,
-                    Property::MaxWidth => node.max_width = value,
+                    Property::Display
+                    | Property::FlexDirection
+                    | Property::FlexWrap
+                    | Property::JustifyContent
+                    | Property::AlignItems
+                    | Property::AlignContent => flex::apply(node, rule.property, rule.value),
+                    _ => dimension::apply(node, rule.property, rule.value),
                 }
             }
         },
