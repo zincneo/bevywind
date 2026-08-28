@@ -46,6 +46,14 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 | Property::PaddingRight
                 | Property::PaddingTop
                 | Property::PaddingBottom => return None,
+                Property::BorderLeft
+                | Property::BorderRight
+                | Property::BorderTop
+                | Property::BorderBottom
+                | Property::BorderColorLeft
+                | Property::BorderColorRight
+                | Property::BorderColorTop
+                | Property::BorderColorBottom => return None,
                 Property::BackgroundColor => return None,
             };
             let value = value_tokens(rule.value);
@@ -72,11 +80,22 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
         ],
         quote! { padding },
     );
+    let border = rect_tokens(
+        &rules,
+        [
+            Property::BorderLeft,
+            Property::BorderRight,
+            Property::BorderTop,
+            Property::BorderBottom,
+        ],
+        quote! { border },
+    );
     let node = quote! {
         Node {
             #(#fields,)*
             #margin
             #padding
+            #border
         }
     };
     let backgrounds = rules.iter().filter_map(|rule| {
@@ -93,6 +112,15 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             })
         })
     });
+    let border_colors = color_rect_tokens(
+        &rules,
+        [
+            Property::BorderColorLeft,
+            Property::BorderColorRight,
+            Property::BorderColorTop,
+            Property::BorderColorBottom,
+        ],
+    );
 
     quote! {
         {
@@ -101,6 +129,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             ::bevy::scene::bsn! {
             #node
             #(#backgrounds)*
+            #border_colors
             }
         }
     }
@@ -142,7 +171,9 @@ fn value_tokens(value: Value) -> TokenStream2 {
         Value::Percent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::ViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
         Value::ViewportHeight(value) => quote! { { ::bevy::ui::vh(#value) } },
-        Value::Background(..) => unreachable!("background colors are emitted separately"),
+        Value::Background(..) | Value::BorderColor(..) => {
+            unreachable!("colors are emitted separately")
+        }
     }
 }
 
@@ -167,6 +198,44 @@ fn rect_tokens(
     let [left, right, top, bottom] = values;
     Some(quote! {
         #field: { ::bevy::ui::UiRect::new(#left, #right, #top, #bottom) },
+    })
+}
+
+fn color_tokens(value: Value) -> TokenStream2 {
+    let Value::BorderColor(red, green, blue, alpha) = value else {
+        unreachable!("only border colors are emitted here")
+    };
+    let red = red as f32 / 255.0;
+    let green = green as f32 / 255.0;
+    let blue = blue as f32 / 255.0;
+    let alpha = alpha as f32 / 255.0;
+    quote! { Color::srgba(#red, #green, #blue, #alpha) }
+}
+
+fn color_rect_tokens(
+    rules: &[bevywind_core::StyleRule],
+    properties: [Property; 4],
+) -> Option<TokenStream2> {
+    if !rules.iter().any(|rule| properties.contains(&rule.property)) {
+        return None;
+    }
+    let values = properties.map(|property| {
+        rules
+            .iter()
+            .find(|rule| rule.property == property)
+            .map_or_else(
+                || quote! { ::bevy::color::Color::NONE },
+                |rule| color_tokens(rule.value),
+            )
+    });
+    let [left, right, top, bottom] = values;
+    Some(quote! {
+        ::bevy::ui::BorderColor {
+            left: #left,
+            right: #right,
+            top: #top,
+            bottom: #bottom,
+        }
     })
 }
 

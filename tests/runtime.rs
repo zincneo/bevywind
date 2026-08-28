@@ -27,3 +27,8 @@ fn combines_all_runtime_node_styles() {
         "w_full flex_row h_10px ml_20px p_30per bg_red_500",
     ));
 }
+
+#[test]
+fn parses_runtime_border_styles() {
+    accepts_scene(style_runtime("w_full b_1px bl_11223380 p_10px b_ffffff"));
+}

@@ -2,6 +2,7 @@
 
 use std::collections::HashSet;
 
+mod border;
 mod color;
 mod dimension;
 mod flex;
@@ -28,6 +29,14 @@ pub enum Property {
     PaddingRight,
     PaddingTop,
     PaddingBottom,
+    BorderLeft,
+    BorderRight,
+    BorderTop,
+    BorderBottom,
+    BorderColorLeft,
+    BorderColorRight,
+    BorderColorTop,
+    BorderColorBottom,
     BackgroundColor,
 }
 
@@ -65,6 +74,7 @@ pub enum Value {
     ViewportWidth(u16),
     ViewportHeight(u16),
     Background(u8, u8, u8, u8),
+    BorderColor(u8, u8, u8, u8),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -101,7 +111,10 @@ pub fn parse_classes(input: &str) -> Result<Vec<StyleRule>, StyleError> {
             Some(rules) => rules?,
             None => match dimension::expansion(class, offset) {
                 Some(rules) => rules?,
-                None => vec![parse_class(class, offset)?],
+                None => match border::expansion(class, offset) {
+                    Some(rules) => rules?,
+                    None => vec![parse_class(class, offset)?],
+                },
             },
         };
 
@@ -126,6 +139,14 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
     }
     if class.starts_with("bg_") {
         return color::parse(class, offset);
+    }
+    if class.starts_with("b_")
+        || class.starts_with("bl_")
+        || class.starts_with("br_")
+        || class.starts_with("bt_")
+        || class.starts_with("bb_")
+    {
+        return border::parse(class, offset);
     }
     dimension::parse(class, offset)
 }
@@ -164,6 +185,15 @@ pub fn completion_items() -> &'static [&'static str] {
         "pr_10px",
         "pt_10px",
         "pb_10px",
+        "b_1px",
+        "bl_1px",
+        "br_1px",
+        "bt_1px",
+        "bb_1px",
+        "b_rrggbb",
+        "b_rrggbbaa",
+        "b_red",
+        "b_red_500",
         "bg_red",
         "bg_red_500",
         "bg_rrggbb",

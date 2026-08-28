@@ -5,6 +5,19 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         return Err(error(class, offset, "unknown style utility"));
     };
 
+    let rgba = parse_value(value, class, offset)?;
+
+    Ok(StyleRule {
+        property: Property::BackgroundColor,
+        value: Value::Background(rgba.0, rgba.1, rgba.2, rgba.3),
+    })
+}
+
+pub(crate) fn parse_value(
+    value: &str,
+    class: &str,
+    offset: usize,
+) -> Result<(u8, u8, u8, u8), StyleError> {
     let rgba = match value {
         "transparent" => (0, 0, 0, 0),
         "black" => (0, 0, 0, 255),
@@ -22,10 +35,7 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         }
     };
 
-    Ok(StyleRule {
-        property: Property::BackgroundColor,
-        value: Value::Background(rgba.0, rgba.1, rgba.2, rgba.3),
-    })
+    Ok(rgba)
 }
 
 fn is_hex(value: &str) -> bool {

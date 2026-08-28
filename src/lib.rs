@@ -31,7 +31,13 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
 
             for rule in rules {
                 match rule.property {
-                    Property::BackgroundColor => color::apply(scene, context, rule.value),
+                    Property::BackgroundColor
+                    | Property::BorderColorLeft
+                    | Property::BorderColorRight
+                    | Property::BorderColorTop
+                    | Property::BorderColorBottom => {
+                        color::apply(scene, context, rule.property, rule.value)
+                    }
                     Property::Display
                     | Property::FlexDirection
                     | Property::FlexWrap

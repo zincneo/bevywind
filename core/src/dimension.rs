@@ -38,7 +38,7 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
     Ok(StyleRule { property, value })
 }
 
-fn parse_value(value: &str, class: &str, offset: usize) -> Result<Value, StyleError> {
+pub(crate) fn parse_value(value: &str, class: &str, offset: usize) -> Result<Value, StyleError> {
     let value = if value == "full" {
         Value::Percent(100)
     } else if let Some(number) = value.strip_suffix("px") {
