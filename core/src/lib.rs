@@ -20,6 +20,14 @@ pub enum Property {
     MinWidth,
     MaxHeight,
     MaxWidth,
+    MarginLeft,
+    MarginRight,
+    MarginTop,
+    MarginBottom,
+    PaddingLeft,
+    PaddingRight,
+    PaddingTop,
+    PaddingBottom,
     BackgroundColor,
 }
 
@@ -91,7 +99,10 @@ pub fn parse_classes(input: &str) -> Result<Vec<StyleRule>, StyleError> {
         search_from = offset + class.len();
         let rules_for_class = match flex::expansion(class, offset) {
             Some(rules) => rules?,
-            None => vec![parse_class(class, offset)?],
+            None => match dimension::expansion(class, offset) {
+                Some(rules) => rules?,
+                None => vec![parse_class(class, offset)?],
+            },
         };
 
         for rule in rules_for_class {
@@ -143,6 +154,16 @@ pub fn completion_items() -> &'static [&'static str] {
         "min_w_100px",
         "max_h_100px",
         "max_w_100px",
+        "m_10px",
+        "ml_10px",
+        "mr_10px",
+        "mt_10px",
+        "mb_10px",
+        "p_10px",
+        "pl_10px",
+        "pr_10px",
+        "pt_10px",
+        "pb_10px",
         "bg_red",
         "bg_red_500",
         "bg_rrggbb",

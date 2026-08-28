@@ -23,6 +23,12 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
                 return;
             };
 
+            if rules.is_empty() {
+                return;
+            }
+
+            scene.get_or_insert_template::<Node>(context);
+
             for rule in rules {
                 match rule.property {
                     Property::BackgroundColor => color::apply(scene, context, rule.value),

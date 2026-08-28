@@ -13,10 +13,32 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         (Property::Height, value)
     } else if let Some(value) = class.strip_prefix("w_") {
         (Property::Width, value)
+    } else if let Some(value) = class.strip_prefix("ml_") {
+        (Property::MarginLeft, value)
+    } else if let Some(value) = class.strip_prefix("mr_") {
+        (Property::MarginRight, value)
+    } else if let Some(value) = class.strip_prefix("mt_") {
+        (Property::MarginTop, value)
+    } else if let Some(value) = class.strip_prefix("mb_") {
+        (Property::MarginBottom, value)
+    } else if let Some(value) = class.strip_prefix("pl_") {
+        (Property::PaddingLeft, value)
+    } else if let Some(value) = class.strip_prefix("pr_") {
+        (Property::PaddingRight, value)
+    } else if let Some(value) = class.strip_prefix("pt_") {
+        (Property::PaddingTop, value)
+    } else if let Some(value) = class.strip_prefix("pb_") {
+        (Property::PaddingBottom, value)
     } else {
         return Err(error(class, offset, "unknown style utility"));
     };
 
+    let value = parse_value(value, class, offset)?;
+
+    Ok(StyleRule { property, value })
+}
+
+fn parse_value(value: &str, class: &str, offset: usize) -> Result<Value, StyleError> {
     let value = if value == "full" {
         Value::Percent(100)
     } else if let Some(number) = value.strip_suffix("px") {
@@ -31,7 +53,43 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         return Err(error(class, offset, "invalid dimension value"));
     };
 
-    Ok(StyleRule { property, value })
+    Ok(value)
+}
+
+pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRule>, StyleError>> {
+    let (prefix, properties): (&str, &[Property]) = if class.starts_with("m_") {
+        (
+            "m_",
+            &[
+                Property::MarginLeft,
+                Property::MarginRight,
+                Property::MarginTop,
+                Property::MarginBottom,
+            ],
+        )
+    } else if class.starts_with("p_") {
+        (
+            "p_",
+            &[
+                Property::PaddingLeft,
+                Property::PaddingRight,
+                Property::PaddingTop,
+                Property::PaddingBottom,
+            ],
+        )
+    } else {
+        return None;
+    };
+
+    let value = match parse_value(&class[prefix.len()..], class, offset) {
+        Ok(value) => value,
+        Err(error) => return Some(Err(error)),
+    };
+    Some(Ok(properties
+        .iter()
+        .copied()
+        .map(|property| StyleRule { property, value })
+        .collect()))
 }
 
 fn parse_number(number: &str, class: &str, offset: usize) -> Result<u16, StyleError> {

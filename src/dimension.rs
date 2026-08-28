@@ -16,6 +16,14 @@ pub(crate) fn apply(node: &mut Node, property: Property, value: Value) {
         Property::MinWidth => node.min_width = value,
         Property::MaxHeight => node.max_height = value,
         Property::MaxWidth => node.max_width = value,
+        Property::MarginLeft => node.margin.left = value,
+        Property::MarginRight => node.margin.right = value,
+        Property::MarginTop => node.margin.top = value,
+        Property::MarginBottom => node.margin.bottom = value,
+        Property::PaddingLeft => node.padding.left = value,
+        Property::PaddingRight => node.padding.right = value,
+        Property::PaddingTop => node.padding.top = value,
+        Property::PaddingBottom => node.padding.bottom = value,
         _ => {}
     }
 }
