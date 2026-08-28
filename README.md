@@ -12,7 +12,7 @@ use bevywind::bstyle;
 
 fn scene() -> impl Scene {
     bsn! {
-        bstyle!(w-full h-full)
+        bstyle!(w_full h_full)
 
         Children [
             Text("Hello")
@@ -24,7 +24,7 @@ fn scene() -> impl Scene {
 `bstyle!` 是过程宏。样式 token 会在编译期解析，解析失败时会产生编译期错误：
 
 ```rust
-bstyle!(h-10px w-50%)
+bstyle!(h_10px w_50per)
 ```
 
 `bstyle!` 只接受样式 token，不接受字符串；它要求至少有一个样式，不支持空调用：
@@ -50,70 +50,67 @@ fn scene(classes: &String) -> impl Scene {
 
 `style_runtime` 接收实现 `AsRef<str>` 的值，例如 `&str`、`String` 和 `&String`。动态样式会在运行时解析。
 
-## LSP
-
-仓库包含独立的 `bevywind-lsp` 可执行程序，为 Rust 文件中的 token-style `bstyle!(...)` 提供样式合法性错误提示。它不是 `bevywind` 库的依赖。
-
-构建：
-
-```bash
-cargo build --manifest-path bevywind-lsp/Cargo.toml --release
-```
-
-安装到 Cargo 的可执行程序目录：
-
-```bash
-cargo install --path bevywind-lsp
-```
-
-Helix 可以在 `~/.config/helix/languages.toml` 中配置：
-
-```toml
-[language-server.bevywind-lsp]
-command = "bevywind-lsp"
-
-[[language]]
-name = "rust"
-language-servers = [
-    { name = "bevywind-lsp", only-features = ["diagnostics"] },
-    "rust-analyzer",
-]
-```
-
-随后即可使用：
-
-```rust
-bstyle!(h-100px w-50w min-h-50%)
-```
-
 ## 可用样式
 
 ### 高度和宽度
 
-当前支持 `h-*` 高度和 `w-*` 宽度样式：
+当前支持 `h_*` 高度和 `w_*` 宽度样式：
 
 | 语法 | Bevy 属性 | 含义 |
 | --- | --- | --- |
-| `h-full` | `height: percent(100)` | 高度占父节点 100% |
-| `w-full` | `width: percent(100)` | 宽度占父节点 100% |
-| `h-10px` | `height: px(10)` | 高度为 10 逻辑像素 |
-| `w-20px` | `width: px(20)` | 宽度为 20 逻辑像素 |
-| `h-30%` | `height: percent(30)` | 高度为父节点的 30% |
-| `w-40%` | `width: percent(40)` | 宽度为父节点的 40% |
-| `h-50w` | `height: vw(50)` | 高度为视口宽度的 50% |
-| `w-60w` | `width: vw(60)` | 宽度为视口宽度的 60% |
-| `h-70h` | `height: vh(70)` | 高度为视口高度的 70% |
-| `w-80h` | `width: vh(80)` | 宽度为视口高度的 80% |
+| `h_full` | `height: percent(100)` | 高度占父节点 100% |
+| `w_full` | `width: percent(100)` | 宽度占父节点 100% |
+| `h_10px` | `height: px(10)` | 高度为 10 逻辑像素 |
+| `w_20px` | `width: px(20)` | 宽度为 20 逻辑像素 |
+| `h_30per` | `height: percent(30)` | 高度为父节点的 30% |
+| `w_40per` | `width: percent(40)` | 宽度为父节点的 40% |
+| `h_50w` | `height: vw(50)` | 高度为视口宽度的 50% |
+| `w_60w` | `width: vw(60)` | 宽度为视口宽度的 60% |
+| `h_70h` | `height: vh(70)` | 高度为视口高度的 70% |
+| `w_80h` | `width: vh(80)` | 宽度为视口高度的 80% |
 
 数字部分按 `u16` 解析，因此必须是非负整数，且不能超过 `u16` 的范围。
 
 最小和最大尺寸使用与高度、宽度相同的格式：
 
 ```rust
-bstyle!(min-h-100px min-w-20% max-h-80w max-w-90h)
+bstyle!(min_h_100px min_w_20per max_h_80w max_w_90h)
 ```
 
 它们分别对应 Bevy `Node` 的 `min_height`、`min_width`、`max_height` 和 `max_width` 属性。
+
+### 背景色
+
+使用 `bg_*` 设置当前 UI 节点的 `BackgroundColor`，语法参考 Tailwind CSS：
+
+| 写法 | 解析结果 |
+| --- | --- |
+| `bg_transparent` | `BackgroundColor(Color::NONE)` |
+| `bg_black` | `BackgroundColor(Color::BLACK)` |
+| `bg_white` | `BackgroundColor(Color::WHITE)` |
+| `bg_{颜色}` | 使用该颜色的 `500` 色阶 |
+| `bg_{颜色}_{色阶}` | 使用指定色阶，色阶范围为 `50–950` |
+| `bg_rrggbb` | 解析为不透明 `Color::srgb(...)` |
+| `bg_rrggbbaa` | 解析为带透明度的 `Color::srgba(...)` |
+
+预设颜色为：
+
+| 颜色 | 可用语法 |
+| --- | --- |
+| `slate`、`gray`、`zinc`、`neutral`、`stone` | `bg_{颜色}`、`bg_{颜色}_{色阶}` |
+| `red`、`orange`、`amber`、`yellow`、`lime` | `bg_{颜色}`、`bg_{颜色}_{色阶}` |
+| `green`、`emerald`、`teal`、`cyan`、`sky` | `bg_{颜色}`、`bg_{颜色}_{色阶}` |
+| `blue`、`indigo`、`violet`、`purple`、`fuchsia` | `bg_{颜色}`、`bg_{颜色}_{色阶}` |
+| `pink`、`rose` | `bg_{颜色}`、`bg_{颜色}_{色阶}` |
+
+```rust
+bstyle!(bg_red)
+bstyle!(bg_red_50)
+bstyle!(bg_ffffff)
+bstyle!(bg_ffffff80)
+```
+
+同一个节点只能指定一个背景色。
 
 ### Flex 布局
 
@@ -121,11 +118,11 @@ bstyle!(min-h-100px min-w-20% max-h-80w max-w-90h)
 
 | 语法 | Bevy 属性 |
 | --- | --- |
-| `flex-row` | `display: Display::Flex`, `flex_direction: FlexDirection::Row` |
-| `flex-row-reverse` | `display: Display::Flex`, `flex_direction: FlexDirection::RowReverse` |
-| `flex-col` | `display: Display::Flex`, `flex_direction: FlexDirection::Column` |
-| `flex-col-reverse` | `display: Display::Flex`, `flex_direction: FlexDirection::ColumnReverse` |
-| `flex-center` | `flex-row justify-center items-center` |
+| `flex_row` | `display: Display::Flex`, `flex_direction: FlexDirection::Row` |
+| `flex_row_reverse` | `display: Display::Flex`, `flex_direction: FlexDirection::RowReverse` |
+| `flex_col` | `display: Display::Flex`, `flex_direction: FlexDirection::Column` |
+| `flex_col_reverse` | `display: Display::Flex`, `flex_direction: FlexDirection::ColumnReverse` |
+| `flex_center` | `flex_row justify_center items_center` |
 
 方向样式自动设置 `display: Display::Flex`。
 
@@ -133,28 +130,28 @@ bstyle!(min-h-100px min-w-20% max-h-80w max-w-90h)
 
 | 语法 | Bevy 属性 |
 | --- | --- |
-| `flex-nowrap` | `flex_wrap: FlexWrap::NoWrap` |
-| `flex-wrap` | `flex_wrap: FlexWrap::Wrap` |
-| `flex-wrap-reverse` | `flex_wrap: FlexWrap::WrapReverse` |
+| `flex_nowrap` | `flex_wrap: FlexWrap::NoWrap` |
+| `flex_wrap` | `flex_wrap: FlexWrap::Wrap` |
+| `flex_wrap_reverse` | `flex_wrap: FlexWrap::WrapReverse` |
 
 #### 对齐
 
 | 语法 | Bevy 属性 |
 | --- | --- |
-| `justify-start` / `justify-end` | `justify_content: JustifyContent::FlexStart` / `FlexEnd` |
-| `justify-center` | `justify_content: JustifyContent::Center` |
-| `justify-between` / `justify-around` | `justify_content: JustifyContent::SpaceBetween` / `SpaceAround` |
-| `justify-evenly` / `justify-stretch` | `justify_content: JustifyContent::SpaceEvenly` / `Stretch` |
-| `items-start` / `items-end` | `align_items: AlignItems::FlexStart` / `FlexEnd` |
-| `items-center` / `items-baseline` | `align_items: AlignItems::Center` / `Baseline` |
-| `items-stretch` | `align_items: AlignItems::Stretch` |
-| `content-start` / `content-end` | `align_content: AlignContent::FlexStart` / `FlexEnd` |
-| `content-center` | `align_content: AlignContent::Center` |
-| `content-between` / `content-around` | `align_content: AlignContent::SpaceBetween` / `SpaceAround` |
-| `content-evenly` / `content-stretch` | `align_content: AlignContent::SpaceEvenly` / `Stretch` |
+| `justify_start` / `justify_end` | `justify_content: JustifyContent::FlexStart` / `FlexEnd` |
+| `justify_center` | `justify_content: JustifyContent::Center` |
+| `justify_between` / `justify_around` | `justify_content: JustifyContent::SpaceBetween` / `SpaceAround` |
+| `justify_evenly` / `justify_stretch` | `justify_content: JustifyContent::SpaceEvenly` / `Stretch` |
+| `items_start` / `items_end` | `align_items: AlignItems::FlexStart` / `FlexEnd` |
+| `items_center` / `items_baseline` | `align_items: AlignItems::Center` / `Baseline` |
+| `items_stretch` | `align_items: AlignItems::Stretch` |
+| `content_start` / `content_end` | `align_content: AlignContent::FlexStart` / `FlexEnd` |
+| `content_center` | `align_content: AlignContent::Center` |
+| `content_between` / `content_around` | `align_content: AlignContent::SpaceBetween` / `SpaceAround` |
+| `content_evenly` / `content_stretch` | `align_content: AlignContent::SpaceEvenly` / `Stretch` |
 
 ```rust
-bstyle!(flex-center)
-bstyle!(flex-center flex-wrap)
-bstyle!(flex-col items-start justify-between)
+bstyle!(flex_center)
+bstyle!(flex_center flex_wrap)
+bstyle!(flex_col items_start justify_between)
 ```

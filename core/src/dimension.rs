@@ -1,17 +1,17 @@
 use crate::{Property, StyleError, StyleRule, Value, error};
 
 pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError> {
-    let (property, value) = if let Some(value) = class.strip_prefix("max-h-") {
+    let (property, value) = if let Some(value) = class.strip_prefix("max_h_") {
         (Property::MaxHeight, value)
-    } else if let Some(value) = class.strip_prefix("max-w-") {
+    } else if let Some(value) = class.strip_prefix("max_w_") {
         (Property::MaxWidth, value)
-    } else if let Some(value) = class.strip_prefix("min-h-") {
+    } else if let Some(value) = class.strip_prefix("min_h_") {
         (Property::MinHeight, value)
-    } else if let Some(value) = class.strip_prefix("min-w-") {
+    } else if let Some(value) = class.strip_prefix("min_w_") {
         (Property::MinWidth, value)
-    } else if let Some(value) = class.strip_prefix("h-") {
+    } else if let Some(value) = class.strip_prefix("h_") {
         (Property::Height, value)
-    } else if let Some(value) = class.strip_prefix("w-") {
+    } else if let Some(value) = class.strip_prefix("w_") {
         (Property::Width, value)
     } else {
         return Err(error(class, offset, "unknown style utility"));
@@ -21,7 +21,7 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         Value::Percent(100)
     } else if let Some(number) = value.strip_suffix("px") {
         Value::Pixels(parse_number(number, class, offset)?)
-    } else if let Some(number) = value.strip_suffix('%') {
+    } else if let Some(number) = value.strip_suffix("per") {
         Value::Percent(parse_number(number, class, offset)?)
     } else if let Some(number) = value.strip_suffix('w') {
         Value::ViewportWidth(parse_number(number, class, offset)?)

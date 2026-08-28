@@ -4,6 +4,7 @@ use bevy::scene::{ResolveContext, ResolvedScene, Scene, SceneFunction};
 use bevy::ui::Node;
 use bevywind_core::Property;
 
+mod color;
 mod dimension;
 mod flex;
 
@@ -18,21 +19,26 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
 
     SceneFunction(
         move |context: &mut ResolveContext, scene: &mut ResolvedScene| {
-            let node = scene.get_or_insert_template::<Node>(context);
-
             let Ok(rules) = bevywind_core::parse_classes(&classes) else {
                 return;
             };
 
             for rule in rules {
                 match rule.property {
+                    Property::BackgroundColor => color::apply(scene, context, rule.value),
                     Property::Display
                     | Property::FlexDirection
                     | Property::FlexWrap
                     | Property::JustifyContent
                     | Property::AlignItems
-                    | Property::AlignContent => flex::apply(node, rule.property, rule.value),
-                    _ => dimension::apply(node, rule.property, rule.value),
+                    | Property::AlignContent => {
+                        let node = scene.get_or_insert_template::<Node>(context);
+                        flex::apply(node, rule.property, rule.value);
+                    }
+                    _ => {
+                        let node = scene.get_or_insert_template::<Node>(context);
+                        dimension::apply(node, rule.property, rule.value);
+                    }
                 }
             }
         },

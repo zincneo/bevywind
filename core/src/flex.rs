@@ -2,32 +2,32 @@ use crate::{Property, StyleError, StyleRule, Value};
 
 pub(crate) fn parse(class: &str, _offset: usize) -> Option<Result<StyleRule, StyleError>> {
     let value = match class {
-        "flex-row" => Value::FlexDirectionRow,
-        "flex-row-reverse" => Value::FlexDirectionRowReverse,
-        "flex-col" => Value::FlexDirectionColumn,
-        "flex-col-reverse" => Value::FlexDirectionColumnReverse,
-        "flex-nowrap" => Value::FlexWrapNoWrap,
-        "flex-wrap" => Value::FlexWrap,
-        "flex-wrap-reverse" => Value::FlexWrapReverse,
-        "justify-start" => Value::JustifyStart,
-        "justify-end" => Value::JustifyEnd,
-        "justify-center" => Value::JustifyCenter,
-        "justify-between" => Value::JustifyBetween,
-        "justify-around" => Value::JustifyAround,
-        "justify-evenly" => Value::JustifyEvenly,
-        "justify-stretch" => Value::JustifyStretch,
-        "items-start" => Value::AlignStart,
-        "items-end" => Value::AlignEnd,
-        "items-center" => Value::AlignCenter,
-        "items-baseline" => Value::AlignBaseline,
-        "items-stretch" => Value::AlignStretch,
-        "content-start" => Value::ContentStart,
-        "content-end" => Value::ContentEnd,
-        "content-center" => Value::ContentCenter,
-        "content-between" => Value::ContentBetween,
-        "content-around" => Value::ContentAround,
-        "content-evenly" => Value::ContentEvenly,
-        "content-stretch" => Value::ContentStretch,
+        "flex_row" => Value::FlexDirectionRow,
+        "flex_row_reverse" => Value::FlexDirectionRowReverse,
+        "flex_col" => Value::FlexDirectionColumn,
+        "flex_col_reverse" => Value::FlexDirectionColumnReverse,
+        "flex_nowrap" => Value::FlexWrapNoWrap,
+        "flex_wrap" => Value::FlexWrap,
+        "flex_wrap_reverse" => Value::FlexWrapReverse,
+        "justify_start" => Value::JustifyStart,
+        "justify_end" => Value::JustifyEnd,
+        "justify_center" => Value::JustifyCenter,
+        "justify_between" => Value::JustifyBetween,
+        "justify_around" => Value::JustifyAround,
+        "justify_evenly" => Value::JustifyEvenly,
+        "justify_stretch" => Value::JustifyStretch,
+        "items_start" => Value::AlignStart,
+        "items_end" => Value::AlignEnd,
+        "items_center" => Value::AlignCenter,
+        "items_baseline" => Value::AlignBaseline,
+        "items_stretch" => Value::AlignStretch,
+        "content_start" => Value::ContentStart,
+        "content_end" => Value::ContentEnd,
+        "content_center" => Value::ContentCenter,
+        "content_between" => Value::ContentBetween,
+        "content_around" => Value::ContentAround,
+        "content_evenly" => Value::ContentEvenly,
+        "content_stretch" => Value::ContentStretch,
         _ => return None,
     };
     let property = match value {
@@ -54,7 +54,7 @@ pub(crate) fn parse(class: &str, _offset: usize) -> Option<Result<StyleRule, Sty
 }
 
 pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRule>, StyleError>> {
-    if class == "flex-center" {
+    if class == "flex_center" {
         return Some(Ok(vec![
             StyleRule {
                 property: Property::Display,
@@ -76,7 +76,7 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
     }
     if matches!(
         class,
-        "flex-row" | "flex-row-reverse" | "flex-col" | "flex-col-reverse"
+        "flex_row" | "flex_row_reverse" | "flex_col" | "flex_col_reverse"
     ) {
         return Some(Ok(vec![
             StyleRule {

@@ -2,6 +2,7 @@
 
 use std::collections::HashSet;
 
+mod color;
 mod dimension;
 mod flex;
 
@@ -19,6 +20,7 @@ pub enum Property {
     MinWidth,
     MaxHeight,
     MaxWidth,
+    BackgroundColor,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -54,6 +56,7 @@ pub enum Value {
     Percent(u16),
     ViewportWidth(u16),
     ViewportHeight(u16),
+    Background(u8, u8, u8, u8),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -110,6 +113,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
     if let Some(rule) = flex::parse(class, offset) {
         return rule;
     }
+    if class.starts_with("bg_") {
+        return color::parse(class, offset);
+    }
     dimension::parse(class, offset)
 }
 
@@ -123,19 +129,23 @@ pub(crate) fn error(class: &str, offset: usize, message: &str) -> StyleError {
 
 pub fn completion_items() -> &'static [&'static str] {
     &[
-        "h-full",
-        "w-full",
-        "h-100px",
-        "w-100px",
-        "h-100%",
-        "w-100%",
-        "h-100w",
-        "w-100w",
-        "h-100h",
-        "w-100h",
-        "min-h-100px",
-        "min-w-100px",
-        "max-h-100px",
-        "max-w-100px",
+        "h_full",
+        "w_full",
+        "h_100px",
+        "w_100px",
+        "h_100per",
+        "w_100per",
+        "h_100w",
+        "w_100w",
+        "h_100h",
+        "w_100h",
+        "min_h_100px",
+        "min_w_100px",
+        "max_h_100px",
+        "max_w_100px",
+        "bg_red",
+        "bg_red_500",
+        "bg_rrggbb",
+        "bg_rrggbbaa",
     ]
 }
