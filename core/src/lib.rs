@@ -6,6 +6,7 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod image;
 mod overflow;
 mod position;
 mod typography;
@@ -66,9 +67,13 @@ pub enum Property {
     AlignSelf,
     RowGap,
     ColumnGap,
+    Image,
+    ImageMode,
+    ImageFlipX,
+    ImageFlipY,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
     DisplayFlex,
     FlexDirectionRow,
@@ -144,9 +149,18 @@ pub enum Value {
     AlignSelfCenter,
     AlignSelfBaseline,
     AlignSelfStretch,
+    ImageUrl(String),
+    ImageModeAuto,
+    ImageModeStretch,
+    ImageModeRepeat,
+    ImageModeRepeatX,
+    ImageModeRepeatY,
+    ImageModeNoRepeat,
+    ImageFlipX,
+    ImageFlipY,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct StyleRule {
     pub property: Property,
     pub value: Value,
@@ -172,10 +186,7 @@ pub fn parse_classes(input: &str) -> Result<Vec<StyleRule>, StyleError> {
     let mut rules = Vec::new();
     let mut properties = HashSet::new();
 
-    let mut search_from = 0;
-    for class in input.split_whitespace() {
-        let offset = search_from + input[search_from..].find(class).unwrap_or(0);
-        search_from = offset + class.len();
+    for (offset, class) in split_classes(input) {
         let rules_for_class = match flex::expansion(class, offset) {
             Some(rules) => rules?,
             None => match overflow::expansion(class, offset) {
@@ -205,6 +216,48 @@ pub fn parse_classes(input: &str) -> Result<Vec<StyleRule>, StyleError> {
     Ok(rules)
 }
 
+fn split_classes(input: &str) -> Vec<(usize, &str)> {
+    let mut classes = Vec::new();
+    let mut start = None;
+    let mut quote = false;
+    let mut escaped = false;
+    let mut depth: usize = 0;
+
+    for (index, character) in input.char_indices() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+        if quote && character == '\\' {
+            escaped = true;
+            continue;
+        }
+        if character == '"' {
+            quote = !quote;
+            if start.is_none() {
+                start = Some(index);
+            }
+            continue;
+        }
+        if !quote && character == '(' {
+            depth += 1;
+        } else if !quote && character == ')' {
+            depth = depth.saturating_sub(1);
+        }
+        if !quote && depth == 0 && character.is_whitespace() {
+            if let Some(start) = start.take() {
+                classes.push((start, &input[start..index]));
+            }
+        } else if start.is_none() {
+            start = Some(index);
+        }
+    }
+    if let Some(start) = start {
+        classes.push((start, &input[start..]));
+    }
+    classes
+}
+
 pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> {
     if let Some(rule) = flex::parse(class, offset) {
         return rule;
@@ -213,6 +266,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
         return rule;
     }
     if let Some(rule) = overflow::parse(class, offset) {
+        return rule;
+    }
+    if let Some(rule) = image::parse(class, offset) {
         return rule;
     }
     if class.starts_with("bg_") {
@@ -336,5 +392,14 @@ pub fn completion_items() -> &'static [&'static str] {
         "t_center",
         "t_bold",
         "t_italic",
+        "bgi_url(\"images/panel.png\")",
+        "bgi_auto",
+        "bgi_stretch",
+        "bgi_repeat",
+        "bgi_repeat_x",
+        "bgi_repeat_y",
+        "bgi_no_repeat",
+        "bgi_flip_x",
+        "bgi_flip_y",
     ]
 }

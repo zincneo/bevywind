@@ -50,6 +50,10 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 Property::AlignSelf => quote! { align_self },
                 Property::RowGap => quote! { row_gap },
                 Property::ColumnGap => quote! { column_gap },
+                Property::Image
+                | Property::ImageMode
+                | Property::ImageFlipX
+                | Property::ImageFlipY => return None,
                 Property::MarginLeft
                 | Property::MarginRight
                 | Property::MarginTop
@@ -79,7 +83,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 | Property::FontWeight
                 | Property::FontStyle => return None,
             };
-            let value = value_tokens(rule.value);
+            let value = value_tokens(rule.value.clone());
             Some(quote! { #field: #value })
         })
         .collect();
@@ -115,6 +119,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
     );
     let border_radius = radius_tokens(&rules);
     let (overflow_helper, overflow) = overflow_tokens(&rules);
+    let image_node = image_tokens(&rules);
     let node = quote! {
         Node {
             #(#fields,)*
@@ -224,9 +229,11 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
         {
             use ::bevy::color::Color;
             use ::bevy::ui::{BackgroundColor, Node};
+            use ::bevy::ui::widget::{ImageNode, NodeImageMode};
             #overflow_helper
             ::bevy::scene::bsn! {
             #node
+            #image_node
             #(#backgrounds)*
             #border_colors
             #(#text_colors)*
@@ -294,6 +301,17 @@ fn value_tokens(value: Value) -> TokenStream2 {
         Value::AlignSelfCenter => quote! { { ::bevy::ui::AlignSelf::Center } },
         Value::AlignSelfBaseline => quote! { { ::bevy::ui::AlignSelf::Baseline } },
         Value::AlignSelfStretch => quote! { { ::bevy::ui::AlignSelf::Stretch } },
+        Value::ImageUrl(_)
+        | Value::ImageModeAuto
+        | Value::ImageModeStretch
+        | Value::ImageModeRepeat
+        | Value::ImageModeRepeatX
+        | Value::ImageModeRepeatY
+        | Value::ImageModeNoRepeat
+        | Value::ImageFlipX
+        | Value::ImageFlipY => {
+            unreachable!("image values are emitted separately")
+        }
         Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
         Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::RadiusViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
@@ -335,7 +353,7 @@ fn overflow_tokens(
             .find(|rule| rule.property == property)
             .map_or_else(
                 || quote! { ::bevy::ui::OverflowAxis::Visible },
-                |rule| overflow_value_tokens(rule.value),
+                |rule| overflow_value_tokens(rule.value.clone()),
             )
     });
     let [x, y] = values;
@@ -375,7 +393,7 @@ fn radius_tokens(rules: &[bevywind_core::StyleRule]) -> Option<TokenStream2> {
             .find(|rule| rule.property == property)
             .map_or_else(
                 || quote! { ::bevy::ui::CornerRadius::ZERO },
-                |rule| radius_value_tokens(rule.value),
+                |rule| radius_value_tokens(rule.value.clone()),
             )
     });
     let [top_left, top_right, bottom_right, bottom_left] = values;
@@ -425,7 +443,7 @@ fn rect_tokens(
             .find(|rule| rule.property == property)
             .map_or_else(
                 || quote! { ::bevy::ui::Val::ZERO },
-                |rule| value_tokens(rule.value),
+                |rule| value_tokens(rule.value.clone()),
             )
     });
     let [left, right, top, bottom] = values;
@@ -458,7 +476,7 @@ fn color_rect_tokens(
             .find(|rule| rule.property == property)
             .map_or_else(
                 || quote! { ::bevy::color::Color::NONE },
-                |rule| color_tokens(rule.value),
+                |rule| color_tokens(rule.value.clone()),
             )
     });
     let [left, right, top, bottom] = values;
@@ -470,6 +488,70 @@ fn color_rect_tokens(
             bottom: #bottom,
         }
     })
+}
+
+fn image_tokens(rules: &[bevywind_core::StyleRule]) -> Option<TokenStream2> {
+    let has_image = rules.iter().any(|rule| {
+        matches!(
+            rule.property,
+            Property::Image | Property::ImageMode | Property::ImageFlipX | Property::ImageFlipY
+        )
+    });
+    if !has_image {
+        return None;
+    }
+
+    let fields: Vec<_> = rules
+        .iter()
+        .filter_map(|rule| match (&rule.property, &rule.value) {
+            (Property::Image, Value::ImageUrl(path)) => {
+                let path = syn::LitStr::new(path, proc_macro2::Span::call_site());
+                Some(quote! { image: #path })
+            }
+            (Property::ImageMode, value) => {
+                let image_mode = image_mode_tokens(value);
+                Some(quote! { image_mode: #image_mode })
+            }
+            (Property::ImageFlipX, Value::ImageFlipX) => Some(quote! { flip_x: true }),
+            (Property::ImageFlipY, Value::ImageFlipY) => Some(quote! { flip_y: true }),
+            _ => None,
+        })
+        .collect();
+
+    Some(quote! {
+        ImageNode { #(#fields,)* }
+    })
+}
+
+fn image_mode_tokens(value: &Value) -> TokenStream2 {
+    match value {
+        Value::ImageModeAuto | Value::ImageModeNoRepeat => {
+            quote! { NodeImageMode::Auto }
+        }
+        Value::ImageModeStretch => quote! { NodeImageMode::Stretch },
+        Value::ImageModeRepeat => quote! {
+            NodeImageMode::Tiled {
+                tile_x: true,
+                tile_y: true,
+                stretch_value: 1.0,
+            }
+        },
+        Value::ImageModeRepeatX => quote! {
+            NodeImageMode::Tiled {
+                tile_x: true,
+                tile_y: false,
+                stretch_value: 1.0,
+            }
+        },
+        Value::ImageModeRepeatY => quote! {
+            NodeImageMode::Tiled {
+                tile_x: false,
+                tile_y: true,
+                stretch_value: 1.0,
+            }
+        },
+        _ => unreachable!("only image modes are emitted here"),
+    }
 }
 
 fn compile_error(message: impl Into<String>) -> TokenStream {

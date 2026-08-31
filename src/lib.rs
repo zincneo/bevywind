@@ -8,6 +8,7 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod image;
 mod overflow;
 mod position;
 mod typography;
@@ -36,7 +37,7 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
 
             let typography_rules: Vec<_> = rules
                 .iter()
-                .copied()
+                .cloned()
                 .filter(|rule| {
                     matches!(
                         rule.property,
@@ -68,6 +69,12 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::LineBreak
                     | Property::FontWeight
                     | Property::FontStyle => {}
+                    Property::Image
+                    | Property::ImageMode
+                    | Property::ImageFlipX
+                    | Property::ImageFlipY => {
+                        image::apply(scene, context, rule.property, rule.value)
+                    }
                     Property::Display
                     | Property::FlexDirection
                     | Property::FlexWrap

@@ -60,3 +60,4 @@ fn scene(classes: &String) -> impl Scene {
 6. [文字与排版](docs/typography.md)
 7. [定位](docs/position.md)
 8. [溢出控制](docs/overflow.md)
+9. [背景图片](docs/background-image.md)

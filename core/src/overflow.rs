@@ -34,7 +34,7 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
     Some(Ok(vec![
         StyleRule {
             property: Property::OverflowX,
-            value,
+            value: value.clone(),
         },
         StyleRule {
             property: Property::OverflowY,

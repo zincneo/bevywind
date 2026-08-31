@@ -110,7 +110,7 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
         let value = parse_gap(value, class, offset);
         return Some(value.map(|value| {
             vec![
-                rule(Property::RowGap, value),
+                rule(Property::RowGap, value.clone()),
                 rule(Property::ColumnGap, value),
             ]
         }));

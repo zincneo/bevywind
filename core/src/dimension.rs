@@ -70,6 +70,9 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
     Some(Ok(properties
         .iter()
         .copied()
-        .map(|property| StyleRule { property, value })
+        .map(|property| StyleRule {
+            property,
+            value: value.clone(),
+        })
         .collect()))
 }

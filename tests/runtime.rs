@@ -1,9 +1,10 @@
 use bevy::{
-    app::App,
-    asset::{AssetPlugin, Assets},
+    app::{App, TaskPoolPlugin},
+    asset::{AssetApp, AssetPlugin, Assets},
+    image::Image,
     scene::{ScenePatch, WorldSceneExt},
 };
-use bevywind::bstyle_r;
+use bevywind::{bstyle, bstyle_r};
 
 mod common;
 use common::accepts_scene;
@@ -55,6 +56,37 @@ fn parses_runtime_flex_item_and_gap_styles() {
     accepts_scene(bstyle_r(
         "grow_2 shrink_0 basis_50per self_center gap_x_8px gap_y_12px",
     ));
+}
+
+#[test]
+fn parses_runtime_background_image_styles() {
+    accepts_scene(bstyle_r(
+        r#"w_320px h_200px bgi_url("images/panel.png") bgi_repeat_x bgi_flip_y"#,
+    ));
+}
+
+#[test]
+fn resolves_runtime_background_image_scene() {
+    let mut app = App::new();
+    app.add_plugins(TaskPoolPlugin::default());
+    app.add_plugins(AssetPlugin::default());
+    app.init_asset::<Image>();
+    app.init_resource::<Assets<ScenePatch>>();
+    app.world_mut()
+        .spawn_scene(bstyle_r(r#"bgi_url("images/panel.png") bgi_stretch"#))
+        .unwrap();
+}
+
+#[test]
+fn resolves_compile_time_background_image_scene() {
+    let mut app = App::new();
+    app.add_plugins(TaskPoolPlugin::default());
+    app.add_plugins(AssetPlugin::default());
+    app.init_asset::<Image>();
+    app.init_resource::<Assets<ScenePatch>>();
+    app.world_mut()
+        .spawn_scene(bstyle!(bgi_url("images/panel.png") bgi_stretch))
+        .unwrap();
 }
 
 #[test]
