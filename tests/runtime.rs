@@ -29,7 +29,7 @@ fn parses_runtime_spacing_styles() {
 #[test]
 fn combines_all_runtime_node_styles() {
     accepts_scene(bstyle_r(
-        "w_full flex_row h_10px ml_20px p_30per bg_red_500",
+        "w_full flex_row h_10px ml_20px p_30per bg_red_500 absolute top_n_10px",
     ));
 }
 

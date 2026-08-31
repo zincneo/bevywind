@@ -71,7 +71,7 @@ fn rejects_duplicate_text_properties() {
 
 #[test]
 fn macro_and_runtime_produce_the_same_scene_components() {
-    let classes = "w_320px flex_col p_10px bg_red_500 b_2px b_blue_400 b_r_lg \
+    let classes = "w_320px flex_col p_10px bg_red_500 b_2px b_blue_400 b_r_lg absolute top_n_10px \
         t_blue_500 t_20px t_bold t_italic t_center t_leading_relaxed t_whitespace_normal";
 
     let mut app = App::new();
@@ -80,7 +80,7 @@ fn macro_and_runtime_produce_the_same_scene_components() {
     let macro_entity = app
         .world_mut()
         .spawn_scene(bstyle!(
-        w_320px flex_col p_10px bg_red_500 b_2px b_blue_400 b_r_lg
+        w_320px flex_col p_10px bg_red_500 b_2px b_blue_400 b_r_lg absolute top_n_10px
             t_blue_500 t_20px t_bold t_italic t_center t_leading_relaxed t_whitespace_normal
         ))
         .unwrap()

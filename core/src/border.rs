@@ -24,14 +24,14 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         return Err(error(class, offset, "unknown border utility"));
     };
 
-    if let Ok((red, green, blue, alpha)) = crate::color::parse_value(prefix, class, offset) {
+    if let Ok((red, green, blue, alpha)) = crate::parse_color(prefix, class, offset) {
         return Ok(StyleRule {
             property: color_property,
             value: Value::BorderColor(red, green, blue, alpha),
         });
     }
 
-    let value = crate::dimension::parse_value(prefix, class, offset)?;
+    let value = crate::units::parse(prefix, class, offset)?;
     Ok(StyleRule {
         property: width_property,
         value,
@@ -64,7 +64,7 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
         return expand_radius(class, offset, &[Property::BorderRadiusBottomRight]);
     }
     let (prefix, properties) = if class.starts_with("b_") {
-        if crate::color::parse_value(&class[2..], class, offset).is_ok() {
+        if crate::parse_color(&class[2..], class, offset).is_ok() {
             (
                 "b_",
                 [
@@ -130,37 +130,27 @@ fn parse_radius_value(value: &str, class: &str, offset: usize) -> Result<Value, 
     if value == "full" {
         return Ok(Value::RadiusFull);
     }
-    let (number, value): (&str, fn(u16) -> Value) = if let Some(number) = value.strip_suffix("px") {
-        (number, Value::RadiusPixels)
-    } else if let Some(number) = value.strip_suffix("per") {
-        (number, Value::RadiusPercent)
-    } else if let Some(number) = value.strip_suffix('w') {
-        (number, Value::RadiusViewportWidth)
-    } else if let Some(number) = value.strip_suffix('h') {
-        (number, Value::RadiusViewportHeight)
-    } else {
-        return match value {
-            "sm" => Ok(Value::RadiusPixels(2)),
-            "" => Ok(Value::RadiusPixels(4)),
-            "md" => Ok(Value::RadiusPixels(6)),
-            "lg" => Ok(Value::RadiusPixels(8)),
-            "xl" => Ok(Value::RadiusPixels(12)),
-            "2xl" => Ok(Value::RadiusPixels(16)),
-            "3xl" => Ok(Value::RadiusPixels(24)),
-            _ => Err(error(class, offset, "invalid border radius value")),
-        };
+    let value = match value {
+        "sm" => Value::RadiusPixels(2),
+        "" => Value::RadiusPixels(4),
+        "md" => Value::RadiusPixels(6),
+        "lg" => Value::RadiusPixels(8),
+        "xl" => Value::RadiusPixels(12),
+        "2xl" => Value::RadiusPixels(16),
+        "3xl" => Value::RadiusPixels(24),
+        _ => return map_radius_value(crate::units::parse(value, class, offset)?, class, offset),
     };
-    if number.is_empty() || !number.bytes().all(|byte| byte.is_ascii_digit()) {
-        return Err(error(
-            class,
-            offset,
-            "border radius value must be a non-negative integer",
-        ));
-    }
-    let number = number
-        .parse()
-        .map_err(|_| error(class, offset, "border radius value does not fit in u16"))?;
-    Ok(value(number))
+    Ok(value)
+}
+
+fn map_radius_value(value: Value, class: &str, offset: usize) -> Result<Value, StyleError> {
+    Ok(match value {
+        Value::Pixels(value) => Value::RadiusPixels(value),
+        Value::Percent(value) => Value::RadiusPercent(value),
+        Value::ViewportWidth(value) => Value::RadiusViewportWidth(value),
+        Value::ViewportHeight(value) => Value::RadiusViewportHeight(value),
+        _ => return Err(error(class, offset, "invalid border radius value")),
+    })
 }
 
 fn expand_radius(

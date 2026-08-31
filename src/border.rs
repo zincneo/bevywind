@@ -12,7 +12,7 @@ pub(crate) fn apply(node: &mut Node, property: Property, value: Value) {
         let radius = match value {
             Value::RadiusFull => bevy::ui::CornerRadius::MAX,
             _ => {
-                let Some(value) = crate::dimension::to_val(value) else {
+                let Some(value) = crate::units::to_val(value) else {
                     return;
                 };
                 bevy::ui::CornerRadius::circular(value)
@@ -27,7 +27,7 @@ pub(crate) fn apply(node: &mut Node, property: Property, value: Value) {
         }
         return;
     }
-    let Some(value) = crate::dimension::to_val(value) else {
+    let Some(value) = crate::units::to_val(value) else {
         return;
     };
     match property {

@@ -8,7 +8,9 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod position;
 mod typography;
+mod units;
 
 pub use bevywind_macros::bstyle;
 
@@ -73,6 +75,14 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::AlignContent => {
                         let node = scene.get_or_insert_template::<Node>(context);
                         flex::apply(node, rule.property, rule.value);
+                    }
+                    Property::PositionType
+                    | Property::Left
+                    | Property::Right
+                    | Property::Top
+                    | Property::Bottom => {
+                        let node = scene.get_or_insert_template::<Node>(context);
+                        position::apply(node, rule.property, rule.value);
                     }
                     Property::BorderLeft
                     | Property::BorderRight

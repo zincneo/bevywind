@@ -6,7 +6,9 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod position;
 mod typography;
+mod units;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Property {
@@ -50,6 +52,11 @@ pub enum Property {
     BorderRadiusTopRight,
     BorderRadiusBottomRight,
     BorderRadiusBottomLeft,
+    PositionType,
+    Left,
+    Right,
+    Top,
+    Bottom,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -109,6 +116,12 @@ pub enum Value {
     RadiusViewportWidth(u16),
     RadiusViewportHeight(u16),
     RadiusFull,
+    PositionRelative,
+    PositionAbsolute,
+    NegativePixels(u16),
+    NegativePercent(u16),
+    NegativeViewportWidth(u16),
+    NegativeViewportHeight(u16),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -171,6 +184,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
     if let Some(rule) = flex::parse(class, offset) {
         return rule;
     }
+    if let Some(rule) = position::parse(class, offset) {
+        return rule;
+    }
     if class.starts_with("bg_") {
         return color::parse(class, offset);
     }
@@ -190,6 +206,14 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
         return border::parse(class, offset);
     }
     dimension::parse(class, offset)
+}
+
+pub(crate) fn parse_color(
+    value: &str,
+    class: &str,
+    offset: usize,
+) -> Result<(u8, u8, u8, u8), StyleError> {
+    color::parse_value(value, class, offset)
 }
 
 pub(crate) fn error(class: &str, offset: usize, message: &str) -> StyleError {
@@ -245,6 +269,16 @@ pub fn completion_items() -> &'static [&'static str] {
         "btr_r_10px",
         "bbl_r_10px",
         "bbr_r_10px",
+        "relative",
+        "absolute",
+        "top_10px",
+        "right_10px",
+        "bottom_10px",
+        "left_10px",
+        "top_n_10px",
+        "right_n_10px",
+        "bottom_n_10px",
+        "left_n_10px",
         "b_rrggbb",
         "b_rrggbbaa",
         "b_red",

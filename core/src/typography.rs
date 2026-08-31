@@ -1,11 +1,11 @@
-use crate::{Property, StyleError, StyleRule, Value, color, error};
+use crate::{Property, StyleError, StyleRule, Value, error};
 
 pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError> {
     let Some(value) = class.strip_prefix("t_") else {
         return Err(error(class, offset, "unknown style utility"));
     };
 
-    if let Ok((red, green, blue, alpha)) = color::parse_value(value, class, offset) {
+    if let Ok((red, green, blue, alpha)) = crate::parse_color(value, class, offset) {
         return Ok(StyleRule {
             property: Property::TextColor,
             value: Value::TextColor(red, green, blue, alpha),
@@ -64,7 +64,12 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
                 .unwrap()
                 .strip_suffix("px")
                 .unwrap();
-            Value::LineHeightPixels(parse_number(number, class, offset)?)
+            Value::LineHeightPixels(crate::units::parse_number(
+                number,
+                class,
+                offset,
+                "typography",
+            )?)
         }
         value
             if value
@@ -77,11 +82,18 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
                 .unwrap()
                 .strip_suffix("rel")
                 .unwrap();
-            Value::LineHeightRelative(parse_number(number, class, offset)?.saturating_mul(10))
+            Value::LineHeightRelative(
+                crate::units::parse_number(number, class, offset, "typography")?.saturating_mul(10),
+            )
         }
         value if value.strip_suffix("px").is_some() => {
             let number = value.strip_suffix("px").unwrap();
-            Value::FontSize(parse_number(number, class, offset)?)
+            Value::FontSize(crate::units::parse_number(
+                number,
+                class,
+                offset,
+                "typography",
+            )?)
         }
         _ => return Err(error(class, offset, "unknown typography style")),
     };
@@ -104,17 +116,4 @@ pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError>
         _ => unreachable!(),
     };
     Ok(StyleRule { property, value })
-}
-
-fn parse_number(number: &str, class: &str, offset: usize) -> Result<u16, StyleError> {
-    if number.is_empty() || !number.bytes().all(|byte| byte.is_ascii_digit()) {
-        return Err(error(
-            class,
-            offset,
-            "typography value must be a non-negative integer",
-        ));
-    }
-    number
-        .parse::<u16>()
-        .map_err(|_| error(class, offset, "typography value does not fit in u16"))
 }

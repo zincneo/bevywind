@@ -38,6 +38,11 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 Property::MinWidth => quote! { min_width },
                 Property::MaxHeight => quote! { max_height },
                 Property::MaxWidth => quote! { max_width },
+                Property::PositionType => quote! { position_type },
+                Property::Left => quote! { left },
+                Property::Right => quote! { right },
+                Property::Top => quote! { top },
+                Property::Bottom => quote! { bottom },
                 Property::MarginLeft
                 | Property::MarginRight
                 | Property::MarginTop
@@ -259,6 +264,14 @@ fn value_tokens(value: Value) -> TokenStream2 {
         Value::Percent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::ViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
         Value::ViewportHeight(value) => quote! { { ::bevy::ui::vh(#value) } },
+        Value::PositionRelative => quote! { { ::bevy::ui::PositionType::Relative } },
+        Value::PositionAbsolute => quote! { { ::bevy::ui::PositionType::Absolute } },
+        Value::NegativePixels(value) => quote! { { ::bevy::ui::px(-(#value as f32)) } },
+        Value::NegativePercent(value) => quote! { { ::bevy::ui::percent(-(#value as f32)) } },
+        Value::NegativeViewportWidth(value) => quote! { { ::bevy::ui::vw(-(#value as f32)) } },
+        Value::NegativeViewportHeight(value) => {
+            quote! { { ::bevy::ui::vh(-(#value as f32)) } }
+        }
         Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
         Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::RadiusViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
