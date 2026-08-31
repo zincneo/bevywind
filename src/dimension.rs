@@ -28,6 +28,10 @@ pub(crate) fn to_val(value: Value) -> Option<bevy::ui::Val> {
         Value::Percent(value) => Some(percent(value)),
         Value::ViewportWidth(value) => Some(vw(value)),
         Value::ViewportHeight(value) => Some(vh(value)),
+        Value::RadiusPixels(value) => Some(px(value)),
+        Value::RadiusPercent(value) => Some(percent(value)),
+        Value::RadiusViewportWidth(value) => Some(vw(value)),
+        Value::RadiusViewportHeight(value) => Some(vh(value)),
         _ => None,
     }
 }

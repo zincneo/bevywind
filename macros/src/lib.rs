@@ -50,6 +50,10 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 | Property::BorderRight
                 | Property::BorderTop
                 | Property::BorderBottom
+                | Property::BorderRadiusTopLeft
+                | Property::BorderRadiusTopRight
+                | Property::BorderRadiusBottomRight
+                | Property::BorderRadiusBottomLeft
                 | Property::BorderColorLeft
                 | Property::BorderColorRight
                 | Property::BorderColorTop
@@ -97,12 +101,14 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
         ],
         quote! { border },
     );
+    let border_radius = radius_tokens(&rules);
     let node = quote! {
         Node {
             #(#fields,)*
             #margin
             #padding
             #border
+            #border_radius
         }
     };
     let backgrounds = rules.iter().filter_map(|rule| {
@@ -253,6 +259,10 @@ fn value_tokens(value: Value) -> TokenStream2 {
         Value::Percent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::ViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
         Value::ViewportHeight(value) => quote! { { ::bevy::ui::vh(#value) } },
+        Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
+        Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
+        Value::RadiusViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
+        Value::RadiusViewportHeight(value) => quote! { { ::bevy::ui::vh(#value) } },
         Value::Background(..) | Value::BorderColor(..) => {
             unreachable!("colors are emitted separately")
         }
@@ -272,7 +282,59 @@ fn value_tokens(value: Value) -> TokenStream2 {
         | Value::LineBreakWordOrCharacter
         | Value::FontWeight(_)
         | Value::FontStyleNormal
-        | Value::FontStyleItalic => unreachable!("typography values are emitted separately"),
+        | Value::FontStyleItalic
+        | Value::RadiusFull => unreachable!("value is emitted separately"),
+    }
+}
+
+fn radius_tokens(rules: &[bevywind_core::StyleRule]) -> Option<TokenStream2> {
+    let properties = [
+        Property::BorderRadiusTopLeft,
+        Property::BorderRadiusTopRight,
+        Property::BorderRadiusBottomRight,
+        Property::BorderRadiusBottomLeft,
+    ];
+    if !rules.iter().any(|rule| properties.contains(&rule.property)) {
+        return None;
+    }
+    let values = properties.map(|property| {
+        rules
+            .iter()
+            .find(|rule| rule.property == property)
+            .map_or_else(
+                || quote! { ::bevy::ui::CornerRadius::ZERO },
+                |rule| radius_value_tokens(rule.value),
+            )
+    });
+    let [top_left, top_right, bottom_right, bottom_left] = values;
+    Some(quote! {
+        border_radius: {
+            ::bevy::ui::BorderRadius::new(
+                #top_left,
+                #top_right,
+                #bottom_right,
+                #bottom_left,
+            )
+        },
+    })
+}
+
+fn radius_value_tokens(value: Value) -> TokenStream2 {
+    match value {
+        Value::RadiusFull => quote! { ::bevy::ui::CornerRadius::MAX },
+        Value::RadiusPixels(value) => {
+            quote! { ::bevy::ui::CornerRadius::circular(::bevy::ui::px(#value)) }
+        }
+        Value::RadiusPercent(value) => {
+            quote! { ::bevy::ui::CornerRadius::circular(::bevy::ui::percent(#value)) }
+        }
+        Value::RadiusViewportWidth(value) => {
+            quote! { ::bevy::ui::CornerRadius::circular(::bevy::ui::vw(#value)) }
+        }
+        Value::RadiusViewportHeight(value) => {
+            quote! { ::bevy::ui::CornerRadius::circular(::bevy::ui::vh(#value)) }
+        }
+        _ => unreachable!("only radius values are emitted here"),
     }
 }
 

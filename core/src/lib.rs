@@ -46,6 +46,10 @@ pub enum Property {
     LineBreak,
     FontWeight,
     FontStyle,
+    BorderRadiusTopLeft,
+    BorderRadiusTopRight,
+    BorderRadiusBottomRight,
+    BorderRadiusBottomLeft,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -100,6 +104,11 @@ pub enum Value {
     FontWeight(u16),
     FontStyleNormal,
     FontStyleItalic,
+    RadiusPixels(u16),
+    RadiusPercent(u16),
+    RadiusViewportWidth(u16),
+    RadiusViewportHeight(u16),
+    RadiusFull,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -218,6 +227,20 @@ pub fn completion_items() -> &'static [&'static str] {
         "br_1px",
         "bt_1px",
         "bb_1px",
+        "b_r_none",
+        "b_r_sm",
+        "b_r",
+        "b_r_md",
+        "b_r_lg",
+        "b_r_xl",
+        "b_r_2xl",
+        "b_r_3xl",
+        "b_r_full",
+        "b_r_10px",
+        "bl_r_10px",
+        "br_r_10px",
+        "bt_r_10px",
+        "bb_r_10px",
         "b_rrggbb",
         "b_rrggbbaa",
         "b_red",

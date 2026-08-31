@@ -20,6 +20,7 @@
 - Flex：`Node.display`、`Node.flex_direction`、`Node.flex_wrap`、`Node.justify_content`、`Node.align_items`、`Node.align_content`
 - 间距：`Node.margin` 和 `Node.padding` 的 `UiRect` 方向字段
 - 边框宽度：`Node.border` 的 `UiRect` 方向字段
+- 边框圆角：`Node.border_radius` 的 `top_left`、`top_right`、`bottom_right`、`bottom_left`
 
 背景色和边框颜色属于特殊情况：它们在基础 `Node` 之外，分别额外生成 `BackgroundColor` 和 `BorderColor` Component。
 
@@ -35,8 +36,9 @@
 - 间距：`m_*`、`ml_*`、`mr_*`、`mt_*`、`mb_*`、`p_*`、`pl_*`、`pr_*`、`pt_*`、`pb_*`
 - 边框宽度：`b_*`、`bl_*`、`br_*`、`bt_*`、`bb_*`
 - 边框颜色：同样使用 `b_`、`bl_`、`br_`、`bt_`、`bb_`，值为 `rrggbb` 或 `rrggbbaa`
+- 边框圆角：`b_r_*`、`bl_r_*`、`br_r_*`、`bt_r_*`、`bb_r_*`
 
-尺寸、间距和边框宽度的数值格式沿用同一套规则：
+尺寸、间距、边框宽度和边框圆角的数值格式沿用同一套规则：
 
 - `full`：`percent(100)`
 - `{数字}px`：`px({数字})`
@@ -54,7 +56,7 @@
 - `m_10px ml_20px` 必须报重复属性错误
 - `mt_10px mb_20px` 可以同时使用
 
-同理适用于 padding 和 border。新增组合样式时，也必须展开后再检查冲突。
+同理适用于 padding、border 和 border radius。新增组合样式时，也必须展开后再检查冲突。
 
 ## 代码实现约定
 

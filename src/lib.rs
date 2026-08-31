@@ -77,7 +77,11 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
                     Property::BorderLeft
                     | Property::BorderRight
                     | Property::BorderTop
-                    | Property::BorderBottom => {
+                    | Property::BorderBottom
+                    | Property::BorderRadiusTopLeft
+                    | Property::BorderRadiusTopRight
+                    | Property::BorderRadiusBottomRight
+                    | Property::BorderRadiusBottomLeft => {
                         let node = scene.get_or_insert_template::<Node>(context);
                         border::apply(node, rule.property, rule.value);
                     }
