@@ -11,6 +11,7 @@ mod flex;
 mod image;
 mod overflow;
 mod position;
+mod transform;
 mod typography;
 mod units;
 
@@ -74,6 +75,15 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::ImageFlipX
                     | Property::ImageFlipY => {
                         image::apply(scene, context, rule.property, rule.value)
+                    }
+                    Property::Transform
+                    | Property::TransformX
+                    | Property::TransformY
+                    | Property::Scale
+                    | Property::ScaleX
+                    | Property::ScaleY
+                    | Property::Rotation => {
+                        transform::apply(scene, context, rule.property, rule.value)
                     }
                     Property::Display
                     | Property::FlexDirection

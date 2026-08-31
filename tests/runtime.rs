@@ -66,6 +66,21 @@ fn parses_runtime_background_image_styles() {
 }
 
 #[test]
+fn parses_runtime_ui_transform_styles() {
+    accepts_scene(bstyle_r("tr_x_10px tr_y_n_5px sc_110per rt_3deg"));
+}
+
+#[test]
+fn resolves_runtime_ui_transform_scene() {
+    let mut app = App::new();
+    app.add_plugins(AssetPlugin::default());
+    app.init_resource::<Assets<ScenePatch>>();
+    app.world_mut()
+        .spawn_scene(bstyle_r("tr_10px sc_110per rt_n_3deg"))
+        .unwrap();
+}
+
+#[test]
 fn resolves_runtime_background_image_scene() {
     let mut app = App::new();
     app.add_plugins(TaskPoolPlugin::default());

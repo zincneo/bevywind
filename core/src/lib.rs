@@ -9,6 +9,7 @@ mod flex;
 mod image;
 mod overflow;
 mod position;
+mod transform;
 mod typography;
 mod units;
 
@@ -71,6 +72,13 @@ pub enum Property {
     ImageMode,
     ImageFlipX,
     ImageFlipY,
+    Transform,
+    TransformX,
+    TransformY,
+    Scale,
+    ScaleX,
+    ScaleY,
+    Rotation,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -158,6 +166,8 @@ pub enum Value {
     ImageModeNoRepeat,
     ImageFlipX,
     ImageFlipY,
+    Rotation(u16),
+    NegativeRotation(u16),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -191,11 +201,14 @@ pub fn parse_classes(input: &str) -> Result<Vec<StyleRule>, StyleError> {
             Some(rules) => rules?,
             None => match overflow::expansion(class, offset) {
                 Some(rules) => rules?,
-                None => match dimension::expansion(class, offset) {
+                None => match transform::expansion(class, offset) {
                     Some(rules) => rules?,
-                    None => match border::expansion(class, offset) {
+                    None => match dimension::expansion(class, offset) {
                         Some(rules) => rules?,
-                        None => vec![parse_class(class, offset)?],
+                        None => match border::expansion(class, offset) {
+                            Some(rules) => rules?,
+                            None => vec![parse_class(class, offset)?],
+                        },
                     },
                 },
             },
@@ -269,6 +282,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
         return rule;
     }
     if let Some(rule) = image::parse(class, offset) {
+        return rule;
+    }
+    if let Some(rule) = transform::parse(class, offset) {
         return rule;
     }
     if class.starts_with("bg_") {

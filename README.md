@@ -27,6 +27,8 @@ fn scene() -> impl Scene {
 bstyle!(h_10px w_50per)
 ```
 
+`bstyle!` 描述的是当前 UI Entity 在一个瞬时状态下的样式快照，不表达 CSS 伪类、状态选择器或过渡动画。状态变化由 Bevy ECS 逻辑判断，并为不同状态选择或应用不同的 `bstyle!` Scene patch；状态监听和逐帧动画由 `bsn!` 的 Observer 或独立系统负责。
+
 `bstyle!` 只接受样式 token，不接受字符串；它要求至少有一个样式，不支持空调用：
 
 ```rust
@@ -50,6 +52,8 @@ fn scene(classes: &String) -> impl Scene {
 
 `bstyle_r` 接收实现 `AsRef<str>` 的值，例如 `&str`、`String` 和 `&String`。动态样式会在运行时解析。
 
+`bstyle_r` 仍然只表示一次样式展开，不会自动监听 `hover`、`pressed`、`focused` 等交互状态。应用应在 ECS 中根据状态切换对应样式，或由系统直接修改样式 Component。
+
 ## 样式文档
 
 1. [高度和宽度](docs/dimensions.md)
@@ -61,3 +65,4 @@ fn scene(classes: &String) -> impl Scene {
 7. [定位](docs/position.md)
 8. [溢出控制](docs/overflow.md)
 9. [背景图片](docs/background-image.md)
+10. [UI 变换](docs/ui-transform.md)

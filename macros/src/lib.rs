@@ -54,6 +54,13 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 | Property::ImageMode
                 | Property::ImageFlipX
                 | Property::ImageFlipY => return None,
+                Property::Transform
+                | Property::TransformX
+                | Property::TransformY
+                | Property::Scale
+                | Property::ScaleX
+                | Property::ScaleY
+                | Property::Rotation => return None,
                 Property::MarginLeft
                 | Property::MarginRight
                 | Property::MarginTop
@@ -120,6 +127,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
     let border_radius = radius_tokens(&rules);
     let (overflow_helper, overflow) = overflow_tokens(&rules);
     let image_node = image_tokens(&rules);
+    let transform = transform_tokens(&rules);
     let node = quote! {
         Node {
             #(#fields,)*
@@ -230,10 +238,12 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             use ::bevy::color::Color;
             use ::bevy::ui::{BackgroundColor, Node};
             use ::bevy::ui::widget::{ImageNode, NodeImageMode};
+            use ::bevy::ui::UiTransform;
             #overflow_helper
             ::bevy::scene::bsn! {
             #node
             #image_node
+            #transform
             #(#backgrounds)*
             #border_colors
             #(#text_colors)*
@@ -311,6 +321,9 @@ fn value_tokens(value: Value) -> TokenStream2 {
         | Value::ImageFlipX
         | Value::ImageFlipY => {
             unreachable!("image values are emitted separately")
+        }
+        Value::Rotation(_) | Value::NegativeRotation(_) => {
+            unreachable!("transform values are emitted separately")
         }
         Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
         Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
@@ -551,6 +564,69 @@ fn image_mode_tokens(value: &Value) -> TokenStream2 {
             }
         },
         _ => unreachable!("only image modes are emitted here"),
+    }
+}
+
+fn transform_tokens(rules: &[bevywind_core::StyleRule]) -> Option<TokenStream2> {
+    let properties = [
+        Property::TransformX,
+        Property::TransformY,
+        Property::ScaleX,
+        Property::ScaleY,
+        Property::Rotation,
+    ];
+    if !rules.iter().any(|rule| properties.contains(&rule.property)) {
+        return None;
+    }
+    let translation = |property| {
+        rules
+            .iter()
+            .find(|rule| rule.property == property)
+            .map_or_else(
+                || quote! { ::bevy::ui::Val::ZERO },
+                |rule| value_tokens(rule.value.clone()),
+            )
+    };
+    let scale = |property| {
+        rules
+            .iter()
+            .find(|rule| rule.property == property)
+            .map_or_else(|| quote! { 1.0 }, |rule| scale_value_tokens(&rule.value))
+    };
+    let rotation = rules
+        .iter()
+        .find(|rule| rule.property == Property::Rotation)
+        .map_or_else(
+            || quote! { ::bevy::math::Rot2::IDENTITY },
+            |rule| rotation_tokens(&rule.value),
+        );
+    let x = translation(Property::TransformX);
+    let y = translation(Property::TransformY);
+    let scale_x = scale(Property::ScaleX);
+    let scale_y = scale(Property::ScaleY);
+    Some(quote! {
+        { ::bevy::ecs::template::FnTemplate(|_| Ok(UiTransform {
+            translation: ::bevy::ui::Val2::new(#x, #y),
+            scale: ::bevy::math::Vec2::new(#scale_x, #scale_y),
+            rotation: #rotation,
+        })) }
+    })
+}
+
+fn scale_value_tokens(value: &Value) -> TokenStream2 {
+    let Value::Percent(value) = value else {
+        unreachable!("only percent values are valid scale values")
+    };
+    quote! { #value as f32 / 100.0 }
+}
+
+fn rotation_tokens(value: &Value) -> TokenStream2 {
+    match value {
+        Value::Rotation(value) => quote! { ::bevy::math::Rot2::degrees(#value as f32) },
+        Value::NegativeRotation(value) => {
+            quote! { ::bevy::math::Rot2::degrees(-(#value as f32)) }
+        }
+        _ => unreachable!("only rotation values are emitted here"),
     }
 }
 

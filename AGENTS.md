@@ -11,6 +11,10 @@
 - 组合样式必须先展开为实际属性，再执行重复属性检查
 - 新值格式优先复用现有解析逻辑，不重复实现解析器
 
+## 责任边界
+
+bevywind 只负责把静态样式值编译或展开为当前 Entity 在一个瞬时状态下的 Scene patch，包括 Node 字段和样式相关 Component。它不表达 CSS 伪类、状态选择器或过渡动画；不同状态应由 ECS 逻辑选择或应用不同的 `bstyle!` Scene patch。`bsn!` 的 `on(...)` Observer 可以处理事件、修改状态组件或启动动画；交互状态、状态机、条件切换和逐帧过渡仍属于 Bevy ECS 系统，不由样式解析器、`bstyle!` 或 `bstyle_r` 自动监听和处理。
+
 ## 宏与运行时
 
 `bstyle!` 和 `bstyle_r` 必须共享 `core::parse_classes`，并对相同成功输入生成等价的最终 `ResolvedScene`。区别仅在计算时机：
