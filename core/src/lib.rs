@@ -60,6 +60,12 @@ pub enum Property {
     Bottom,
     OverflowX,
     OverflowY,
+    FlexGrow,
+    FlexShrink,
+    FlexBasis,
+    AlignSelf,
+    RowGap,
+    ColumnGap,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -129,6 +135,15 @@ pub enum Value {
     OverflowClip,
     OverflowHidden,
     OverflowScroll,
+    FlexGrow(u16),
+    FlexShrink(u16),
+    FlexBasisAuto,
+    AlignSelfAuto,
+    AlignSelfStart,
+    AlignSelfEnd,
+    AlignSelfCenter,
+    AlignSelfBaseline,
+    AlignSelfStretch,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

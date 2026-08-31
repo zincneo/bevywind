@@ -44,6 +44,12 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 Property::Top => quote! { top },
                 Property::Bottom => quote! { bottom },
                 Property::OverflowX | Property::OverflowY => return None,
+                Property::FlexGrow => quote! { flex_grow },
+                Property::FlexShrink => quote! { flex_shrink },
+                Property::FlexBasis => quote! { flex_basis },
+                Property::AlignSelf => quote! { align_self },
+                Property::RowGap => quote! { row_gap },
+                Property::ColumnGap => quote! { column_gap },
                 Property::MarginLeft
                 | Property::MarginRight
                 | Property::MarginTop
@@ -280,6 +286,14 @@ fn value_tokens(value: Value) -> TokenStream2 {
         | Value::OverflowClip
         | Value::OverflowHidden
         | Value::OverflowScroll => unreachable!("overflow values are emitted separately"),
+        Value::FlexGrow(value) | Value::FlexShrink(value) => quote! { { #value as f32 } },
+        Value::FlexBasisAuto => quote! { { ::bevy::ui::Val::Auto } },
+        Value::AlignSelfAuto => quote! { { ::bevy::ui::AlignSelf::Auto } },
+        Value::AlignSelfStart => quote! { { ::bevy::ui::AlignSelf::Start } },
+        Value::AlignSelfEnd => quote! { { ::bevy::ui::AlignSelf::End } },
+        Value::AlignSelfCenter => quote! { { ::bevy::ui::AlignSelf::Center } },
+        Value::AlignSelfBaseline => quote! { { ::bevy::ui::AlignSelf::Baseline } },
+        Value::AlignSelfStretch => quote! { { ::bevy::ui::AlignSelf::Stretch } },
         Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
         Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::RadiusViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },

@@ -25,9 +25,39 @@ pub(crate) fn apply(node: &mut Node, property: Property, value: Value) {
                 _ => return,
             }
         }
+        Property::FlexGrow => {
+            if let Value::FlexGrow(value) = value {
+                node.flex_grow = value as f32;
+            }
+        }
+        Property::FlexShrink => {
+            if let Value::FlexShrink(value) = value {
+                node.flex_shrink = value as f32;
+            }
+        }
+        Property::FlexBasis => {
+            node.flex_basis = match value {
+                Value::FlexBasisAuto => bevy::ui::Val::Auto,
+                value => match crate::units::to_val(value) {
+                    Some(value) => value,
+                    None => return,
+                },
+            }
+        }
         Property::JustifyContent => node.justify_content = justify(value),
         Property::AlignItems => node.align_items = items(value),
+        Property::AlignSelf => node.align_self = self_alignment(value),
         Property::AlignContent => node.align_content = content(value),
+        Property::RowGap => {
+            if let Some(value) = crate::units::to_val(value) {
+                node.row_gap = value;
+            }
+        }
+        Property::ColumnGap => {
+            if let Some(value) = crate::units::to_val(value) {
+                node.column_gap = value;
+            }
+        }
         _ => return,
     }
 }
@@ -53,6 +83,18 @@ fn items(value: Value) -> bevy::ui::AlignItems {
         Value::AlignBaseline => bevy::ui::AlignItems::Baseline,
         Value::AlignStretch => bevy::ui::AlignItems::Stretch,
         _ => return bevy::ui::AlignItems::Default,
+    }
+}
+
+fn self_alignment(value: Value) -> bevy::ui::AlignSelf {
+    match value {
+        Value::AlignSelfAuto => bevy::ui::AlignSelf::Auto,
+        Value::AlignSelfStart => bevy::ui::AlignSelf::Start,
+        Value::AlignSelfEnd => bevy::ui::AlignSelf::End,
+        Value::AlignSelfCenter => bevy::ui::AlignSelf::Center,
+        Value::AlignSelfBaseline => bevy::ui::AlignSelf::Baseline,
+        Value::AlignSelfStretch => bevy::ui::AlignSelf::Stretch,
+        _ => bevy::ui::AlignSelf::Auto,
     }
 }
 

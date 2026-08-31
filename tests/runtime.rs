@@ -51,6 +51,13 @@ fn parses_runtime_overflow_styles() {
 }
 
 #[test]
+fn parses_runtime_flex_item_and_gap_styles() {
+    accepts_scene(bstyle_r(
+        "grow_2 shrink_0 basis_50per self_center gap_x_8px gap_y_12px",
+    ));
+}
+
+#[test]
 #[should_panic(expected = "failed to expand runtime styles")]
 fn panics_when_runtime_styles_fail_to_expand() {
     let mut app = App::new();

@@ -73,7 +73,13 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::FlexWrap
                     | Property::JustifyContent
                     | Property::AlignItems
-                    | Property::AlignContent => {
+                    | Property::AlignContent
+                    | Property::FlexGrow
+                    | Property::FlexShrink
+                    | Property::FlexBasis
+                    | Property::AlignSelf
+                    | Property::RowGap
+                    | Property::ColumnGap => {
                         let node = scene.get_or_insert_template::<Node>(context);
                         flex::apply(node, rule.property, rule.value);
                     }

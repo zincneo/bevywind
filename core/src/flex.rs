@@ -1,6 +1,43 @@
 use crate::{Property, StyleError, StyleRule, Value};
 
-pub(crate) fn parse(class: &str, _offset: usize) -> Option<Result<StyleRule, StyleError>> {
+pub(crate) fn parse(class: &str, offset: usize) -> Option<Result<StyleRule, StyleError>> {
+    if class == "grow" {
+        return Some(Ok(rule(Property::FlexGrow, Value::FlexGrow(1))));
+    }
+    if class.starts_with("grow_") {
+        return Some(
+            crate::units::parse_number(&class[5..], class, offset, "flex grow")
+                .map(|value| rule(Property::FlexGrow, Value::FlexGrow(value))),
+        );
+    }
+    if class == "shrink" {
+        return Some(Ok(rule(Property::FlexShrink, Value::FlexShrink(1))));
+    }
+    if class.starts_with("shrink_") {
+        return Some(
+            crate::units::parse_number(&class[7..], class, offset, "flex shrink")
+                .map(|value| rule(Property::FlexShrink, Value::FlexShrink(value))),
+        );
+    }
+    if let Some(value) = class.strip_prefix("basis_") {
+        let value = if value == "auto" {
+            Ok(Value::FlexBasisAuto)
+        } else if value == "0" {
+            Ok(Value::Pixels(0))
+        } else {
+            crate::units::parse(value, class, offset)
+        };
+        return Some(value.map(|value| rule(Property::FlexBasis, value)));
+    }
+    if let Some(value) = class.strip_prefix("gap_x_") {
+        return Some(parse_gap(value, class, offset).map(|value| rule(Property::ColumnGap, value)));
+    }
+    if let Some(value) = class.strip_prefix("gap_y_") {
+        return Some(parse_gap(value, class, offset).map(|value| rule(Property::RowGap, value)));
+    }
+    if let Some(value) = class.strip_prefix("gap_") {
+        return Some(parse_gap(value, class, offset).map(|value| rule(Property::RowGap, value)));
+    }
     let value = match class {
         "flex_row" => Value::FlexDirectionRow,
         "flex_row_reverse" => Value::FlexDirectionRowReverse,
@@ -28,6 +65,12 @@ pub(crate) fn parse(class: &str, _offset: usize) -> Option<Result<StyleRule, Sty
         "content_around" => Value::ContentAround,
         "content_evenly" => Value::ContentEvenly,
         "content_stretch" => Value::ContentStretch,
+        "self_auto" => Value::AlignSelfAuto,
+        "self_start" => Value::AlignSelfStart,
+        "self_end" => Value::AlignSelfEnd,
+        "self_center" => Value::AlignSelfCenter,
+        "self_baseline" => Value::AlignSelfBaseline,
+        "self_stretch" => Value::AlignSelfStretch,
         _ => return None,
     };
     let property = match value {
@@ -48,12 +91,30 @@ pub(crate) fn parse(class: &str, _offset: usize) -> Option<Result<StyleRule, Sty
         | Value::AlignCenter
         | Value::AlignBaseline
         | Value::AlignStretch => Property::AlignItems,
+        Value::AlignSelfAuto
+        | Value::AlignSelfStart
+        | Value::AlignSelfEnd
+        | Value::AlignSelfCenter
+        | Value::AlignSelfBaseline
+        | Value::AlignSelfStretch => Property::AlignSelf,
         _ => Property::AlignContent,
     };
     Some(Ok(StyleRule { property, value }))
 }
 
 pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRule>, StyleError>> {
+    if let Some(value) = class.strip_prefix("gap_") {
+        if value.starts_with("x_") || value.starts_with("y_") {
+            return None;
+        }
+        let value = parse_gap(value, class, offset);
+        return Some(value.map(|value| {
+            vec![
+                rule(Property::RowGap, value),
+                rule(Property::ColumnGap, value),
+            ]
+        }));
+    }
     if class == "flex_center" {
         return Some(Ok(vec![
             StyleRule {
@@ -89,4 +150,15 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
         ]));
     }
     None
+}
+
+fn parse_gap(value: &str, class: &str, offset: usize) -> Result<Value, StyleError> {
+    if value == "0" {
+        return Ok(Value::Pixels(0));
+    }
+    crate::units::parse(value, class, offset)
+}
+
+fn rule(property: Property, value: Value) -> StyleRule {
+    StyleRule { property, value }
 }
