@@ -55,6 +55,13 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 | Property::BorderColorTop
                 | Property::BorderColorBottom => return None,
                 Property::BackgroundColor => return None,
+                Property::TextColor
+                | Property::FontSize
+                | Property::TextJustify
+                | Property::LineHeight
+                | Property::LineBreak
+                | Property::FontWeight
+                | Property::FontStyle => return None,
             };
             let value = value_tokens(rule.value);
             Some(quote! { #field: #value })
@@ -121,6 +128,77 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             Property::BorderColorBottom,
         ],
     );
+    let text_colors = rules.iter().filter_map(|rule| {
+        let Value::TextColor(red, green, blue, alpha) = rule.value else {
+            return None;
+        };
+        let red = red as f32 / 255.0;
+        let green = green as f32 / 255.0;
+        let blue = blue as f32 / 255.0;
+        let alpha = alpha as f32 / 255.0;
+        Some(quote! {
+            ::bevy::text::TextColor({ ::bevy::color::Color::srgba(
+                #red, #green, #blue, #alpha,
+            ) })
+        })
+    });
+    let text_font_fields: Vec<_> = rules
+        .iter()
+        .filter_map(|rule| match rule.value {
+            Value::FontSize(value) => {
+                Some(quote! { font_size: { ::bevy::text::FontSize::Px(#value as f32) } })
+            }
+            Value::FontWeight(value) => {
+                Some(quote! { weight: { ::bevy::text::FontWeight(#value) } })
+            }
+            Value::FontStyleNormal => Some(quote! { style: { ::bevy::text::FontStyle::Normal } }),
+            Value::FontStyleItalic => Some(quote! { style: { ::bevy::text::FontStyle::Italic } }),
+            _ => None,
+        })
+        .collect();
+    let text_font = (!text_font_fields.is_empty()).then(|| {
+        quote! {
+            ::bevy::text::TextFont { #(#text_font_fields,)* }
+        }
+    });
+    let text_layout_fields: Vec<_> = rules
+        .iter()
+        .filter_map(|rule| match rule.value {
+            Value::TextJustifyLeft => Some(quote! { justify: { ::bevy::text::Justify::Left } }),
+            Value::TextJustifyCenter => Some(quote! { justify: { ::bevy::text::Justify::Center } }),
+            Value::TextJustifyRight => Some(quote! { justify: { ::bevy::text::Justify::Right } }),
+            Value::TextJustify => Some(quote! { justify: { ::bevy::text::Justify::Justified } }),
+            Value::TextJustifyStart => Some(quote! { justify: { ::bevy::text::Justify::Start } }),
+            Value::TextJustifyEnd => Some(quote! { justify: { ::bevy::text::Justify::End } }),
+            Value::LineBreakWordBoundary => {
+                Some(quote! { linebreak: { ::bevy::text::LineBreak::WordBoundary } })
+            }
+            Value::LineBreakNoWrap => {
+                Some(quote! { linebreak: { ::bevy::text::LineBreak::NoWrap } })
+            }
+            Value::LineBreakAnyCharacter => {
+                Some(quote! { linebreak: { ::bevy::text::LineBreak::AnyCharacter } })
+            }
+            Value::LineBreakWordOrCharacter => {
+                Some(quote! { linebreak: { ::bevy::text::LineBreak::WordOrCharacter } })
+            }
+            _ => None,
+        })
+        .collect();
+    let text_layout = (!text_layout_fields.is_empty()).then(|| {
+        quote! {
+            ::bevy::text::TextLayout { #(#text_layout_fields,)* }
+        }
+    });
+    let line_heights = rules.iter().filter_map(|rule| match rule.value {
+        Value::LineHeightRelative(value) => Some(quote! {
+            { ::bevy::ecs::template::FnTemplate(|_| Ok(::bevy::text::LineHeight::RelativeToFont(#value as f32 / 1000.0))) }
+        }),
+        Value::LineHeightPixels(value) => Some(quote! {
+            { ::bevy::ecs::template::FnTemplate(|_| Ok(::bevy::text::LineHeight::Px(#value as f32))) }
+        }),
+        _ => None,
+    });
 
     quote! {
         {
@@ -130,6 +208,10 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             #node
             #(#backgrounds)*
             #border_colors
+            #(#text_colors)*
+            #text_font
+            #text_layout
+            #(#line_heights)*
             }
         }
     }
@@ -174,6 +256,23 @@ fn value_tokens(value: Value) -> TokenStream2 {
         Value::Background(..) | Value::BorderColor(..) => {
             unreachable!("colors are emitted separately")
         }
+        Value::TextColor(..)
+        | Value::FontSize(_)
+        | Value::TextJustifyLeft
+        | Value::TextJustifyCenter
+        | Value::TextJustifyRight
+        | Value::TextJustify
+        | Value::TextJustifyStart
+        | Value::TextJustifyEnd
+        | Value::LineHeightRelative(_)
+        | Value::LineHeightPixels(_)
+        | Value::LineBreakWordBoundary
+        | Value::LineBreakNoWrap
+        | Value::LineBreakAnyCharacter
+        | Value::LineBreakWordOrCharacter
+        | Value::FontWeight(_)
+        | Value::FontStyleNormal
+        | Value::FontStyleItalic => unreachable!("typography values are emitted separately"),
     }
 }
 

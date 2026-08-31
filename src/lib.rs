@@ -4,9 +4,11 @@ use bevy::scene::{ResolveContext, ResolvedScene, Scene, SceneFunction};
 use bevy::ui::Node;
 use bevywind_core::Property;
 
+mod border;
 mod color;
 mod dimension;
 mod flex;
+mod typography;
 
 pub use bevywind_macros::bstyle;
 
@@ -14,20 +16,38 @@ pub use bevywind_macros::bstyle;
 ///
 /// The input is copied into the returned scene, so borrowed values such as a
 /// local `&String` or `&str` can be passed safely.
+/// Invalid or conflicting style classes panic when the scene is resolved.
 pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
     let classes = classes.as_ref().to_owned();
 
     SceneFunction(
         move |context: &mut ResolveContext, scene: &mut ResolvedScene| {
-            let Ok(rules) = bevywind_core::parse_classes(&classes) else {
-                return;
-            };
+            let rules = bevywind_core::parse_classes(&classes)
+                .unwrap_or_else(|error| panic!("failed to expand runtime styles: {error}"));
 
             if rules.is_empty() {
                 return;
             }
 
             scene.get_or_insert_template::<Node>(context);
+
+            let typography_rules: Vec<_> = rules
+                .iter()
+                .copied()
+                .filter(|rule| {
+                    matches!(
+                        rule.property,
+                        Property::TextColor
+                            | Property::FontSize
+                            | Property::TextJustify
+                            | Property::LineHeight
+                            | Property::LineBreak
+                            | Property::FontWeight
+                            | Property::FontStyle
+                    )
+                })
+                .collect();
+            typography::apply(scene, &typography_rules);
 
             for rule in rules {
                 match rule.property {
@@ -38,6 +58,13 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::BorderColorBottom => {
                         color::apply(scene, context, rule.property, rule.value)
                     }
+                    Property::TextColor
+                    | Property::FontSize
+                    | Property::TextJustify
+                    | Property::LineHeight
+                    | Property::LineBreak
+                    | Property::FontWeight
+                    | Property::FontStyle => {}
                     Property::Display
                     | Property::FlexDirection
                     | Property::FlexWrap
@@ -46,6 +73,13 @@ pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::AlignContent => {
                         let node = scene.get_or_insert_template::<Node>(context);
                         flex::apply(node, rule.property, rule.value);
+                    }
+                    Property::BorderLeft
+                    | Property::BorderRight
+                    | Property::BorderTop
+                    | Property::BorderBottom => {
+                        let node = scene.get_or_insert_template::<Node>(context);
+                        border::apply(node, rule.property, rule.value);
                     }
                     _ => {
                         let node = scene.get_or_insert_template::<Node>(context);

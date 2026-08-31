@@ -6,6 +6,7 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod typography;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Property {
@@ -38,6 +39,13 @@ pub enum Property {
     BorderColorTop,
     BorderColorBottom,
     BackgroundColor,
+    TextColor,
+    FontSize,
+    TextJustify,
+    LineHeight,
+    LineBreak,
+    FontWeight,
+    FontStyle,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -75,6 +83,23 @@ pub enum Value {
     ViewportHeight(u16),
     Background(u8, u8, u8, u8),
     BorderColor(u8, u8, u8, u8),
+    TextColor(u8, u8, u8, u8),
+    FontSize(u16),
+    TextJustifyLeft,
+    TextJustifyCenter,
+    TextJustifyRight,
+    TextJustify,
+    TextJustifyStart,
+    TextJustifyEnd,
+    LineHeightRelative(u16),
+    LineHeightPixels(u16),
+    LineBreakWordBoundary,
+    LineBreakNoWrap,
+    LineBreakAnyCharacter,
+    LineBreakWordOrCharacter,
+    FontWeight(u16),
+    FontStyleNormal,
+    FontStyleItalic,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -140,6 +165,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
     if class.starts_with("bg_") {
         return color::parse(class, offset);
     }
+    if class.starts_with("t_") {
+        return typography::parse(class, offset);
+    }
     if class.starts_with("b_")
         || class.starts_with("bl_")
         || class.starts_with("br_")
@@ -198,5 +226,14 @@ pub fn completion_items() -> &'static [&'static str] {
         "bg_red_500",
         "bg_rrggbb",
         "bg_rrggbbaa",
+        "t_red",
+        "t_red_500",
+        "t_rrggbb",
+        "t_rrggbbaa",
+        "t_xs",
+        "t_lg",
+        "t_center",
+        "t_bold",
+        "t_italic",
     ]
 }

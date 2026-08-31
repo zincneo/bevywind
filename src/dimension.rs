@@ -2,13 +2,7 @@ use bevy::ui::{Node, percent, px, vh, vw};
 use bevywind_core::{Property, Value};
 
 pub(crate) fn apply(node: &mut Node, property: Property, value: Value) {
-    let value = match value {
-        Value::Pixels(value) => px(value),
-        Value::Percent(value) => percent(value),
-        Value::ViewportWidth(value) => vw(value),
-        Value::ViewportHeight(value) => vh(value),
-        _ => return,
-    };
+    let Some(value) = to_val(value) else { return };
     match property {
         Property::Height => node.height = value,
         Property::Width => node.width = value,
@@ -25,5 +19,15 @@ pub(crate) fn apply(node: &mut Node, property: Property, value: Value) {
         Property::PaddingTop => node.padding.top = value,
         Property::PaddingBottom => node.padding.bottom = value,
         _ => {}
+    }
+}
+
+pub(crate) fn to_val(value: Value) -> Option<bevy::ui::Val> {
+    match value {
+        Value::Pixels(value) => Some(px(value)),
+        Value::Percent(value) => Some(percent(value)),
+        Value::ViewportWidth(value) => Some(vw(value)),
+        Value::ViewportHeight(value) => Some(vh(value)),
+        _ => None,
     }
 }

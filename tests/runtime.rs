@@ -1,3 +1,8 @@
+use bevy::{
+    app::App,
+    asset::{AssetPlugin, Assets},
+    scene::{ScenePatch, WorldSceneExt},
+};
 use bevywind::style_runtime;
 
 mod common;
@@ -31,4 +36,22 @@ fn combines_all_runtime_node_styles() {
 #[test]
 fn parses_runtime_border_styles() {
     accepts_scene(style_runtime("w_full b_1px bl_11223380 p_10px b_ffffff"));
+}
+
+#[test]
+fn parses_runtime_typography_styles() {
+    accepts_scene(style_runtime(
+        "t_blue_500 t_lg t_bold t_italic t_center t_leading_relaxed t_whitespace_normal",
+    ));
+}
+
+#[test]
+#[should_panic(expected = "failed to expand runtime styles")]
+fn panics_when_runtime_styles_fail_to_expand() {
+    let mut app = App::new();
+    app.add_plugins(AssetPlugin::default());
+    app.init_resource::<Assets<ScenePatch>>();
+    app.world_mut()
+        .spawn_scene(style_runtime("not_a_style"))
+        .unwrap();
 }
