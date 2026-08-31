@@ -88,7 +88,7 @@ fn macro_and_runtime_produce_the_same_scene_components() {
 
     let runtime_entity = app
         .world_mut()
-        .spawn_scene(bevywind::style_runtime(classes))
+        .spawn_scene(bevywind::bstyle_r(classes))
         .unwrap()
         .id();
 

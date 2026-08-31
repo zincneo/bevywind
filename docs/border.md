@@ -71,34 +71,34 @@ bstyle!(br_blue_300 bb_33669980)
 | 语法 | Bevy 属性 | 含义 |
 | --- | --- | --- |
 | `b_r_{值}` | `Node.border_radius` 四个角 | 设置四个角的圆角；`{值}` 支持下方所有圆角值 |
-| `bl_r_{值}` | `Node.border_radius.top_left`、`Node.border_radius.bottom_left` | 设置左侧两个角的圆角；`{值}` 支持下方所有圆角值 |
-| `br_r_{值}` | `Node.border_radius.top_right`、`Node.border_radius.bottom_right` | 设置右侧两个角的圆角；`{值}` 支持下方所有圆角值 |
-| `bt_r_{值}` | `Node.border_radius.top_left`、`Node.border_radius.top_right` | 设置顶部两个角的圆角；`{值}` 支持下方所有圆角值 |
-| `bb_r_{值}` | `Node.border_radius.bottom_left`、`Node.border_radius.bottom_right` | 设置底部两个角的圆角；`{值}` 支持下方所有圆角值 |
+| `btl_r_{值}` | `Node.border_radius.top_left` | 设置左上角圆角；`{值}` 支持下方所有圆角值 |
+| `btr_r_{值}` | `Node.border_radius.top_right` | 设置右上角圆角；`{值}` 支持下方所有圆角值 |
+| `bbl_r_{值}` | `Node.border_radius.bottom_left` | 设置左下角圆角；`{值}` 支持下方所有圆角值 |
+| `bbr_r_{值}` | `Node.border_radius.bottom_right` | 设置右下角圆角；`{值}` 支持下方所有圆角值 |
 
 以上五种前缀都支持以下完整的 `{值}` 格式。`b_r` 不带下划线后缀时等同于 `b_r_4px`：
 
 | 写法 | Bevy 值 | 含义 |
 | --- | --- | --- |
-| `b_r_none`、`bl_r_none`、`br_r_none`、`bt_r_none`、`bb_r_none` | `CornerRadius::circular(px(0))` | 清除对应角的圆角 |
-| `b_r_sm`、`bl_r_sm`、`br_r_sm`、`bt_r_sm`、`bb_r_sm` | `px(2)` | 小圆角 |
+| `b_r_none` / `btl_r_none` / `btr_r_none` / `bbl_r_none` / `bbr_r_none` | `CornerRadius::circular(px(0))` | 清除对应角的圆角 |
+| `b_r_sm` / `btl_r_sm` / `btr_r_sm` / `bbl_r_sm` / `bbr_r_sm` | `px(2)` | 小圆角 |
 | `b_r` | `px(4)` | 默认圆角 |
-| `b_r_md`、`bl_r_md`、`br_r_md`、`bt_r_md`、`bb_r_md` | `px(6)` | 中等圆角 |
-| `b_r_lg`、`bl_r_lg`、`br_r_lg`、`bt_r_lg`、`bb_r_lg` | `px(8)` | 大圆角 |
-| `b_r_xl`、`bl_r_xl`、`br_r_xl`、`bt_r_xl`、`bb_r_xl` | `px(12)` | 超大圆角 |
-| `b_r_2xl`、`bl_r_2xl`、`br_r_2xl`、`bt_r_2xl`、`bb_r_2xl` | `px(16)` | `2xl` 圆角 |
-| `b_r_3xl`、`bl_r_3xl`、`br_r_3xl`、`bt_r_3xl`、`bb_r_3xl` | `px(24)` | `3xl` 圆角 |
-| `b_r_full`、`bl_r_full`、`br_r_full`、`bt_r_full`、`bb_r_full` | `CornerRadius::MAX` | 最大圆角，形成胶囊或圆形 |
-| `b_r_{数字}px` / `bl_r_{数字}px` / `br_r_{数字}px` / `bt_r_{数字}px` / `bb_r_{数字}px` | `px({数字})` | 固定逻辑像素圆角 |
-| `b_r_{数字}per` / `bl_r_{数字}per` / `br_r_{数字}per` / `bt_r_{数字}per` / `bb_r_{数字}per` | `percent({数字})` | 相对父节点对应尺寸的百分比圆角 |
-| `b_r_{数字}w` / `bl_r_{数字}w` / `br_r_{数字}w` / `bt_r_{数字}w` / `bb_r_{数字}w` | `vw({数字})` | 相对视口宽度的百分比圆角 |
-| `b_r_{数字}h` / `bl_r_{数字}h` / `br_r_{数字}h` / `bt_r_{数字}h` / `bb_r_{数字}h` | `vh({数字})` | 相对视口高度的百分比圆角 |
+| `b_r_md` / `btl_r_md` / `btr_r_md` / `bbl_r_md` / `bbr_r_md` | `px(6)` | 中等圆角 |
+| `b_r_lg` / `btl_r_lg` / `btr_r_lg` / `bbl_r_lg` / `bbr_r_lg` | `px(8)` | 大圆角 |
+| `b_r_xl` / `btl_r_xl` / `btr_r_xl` / `bbl_r_xl` / `bbr_r_xl` | `px(12)` | 超大圆角 |
+| `b_r_2xl` / `btl_r_2xl` / `btr_r_2xl` / `bbl_r_2xl` / `bbr_r_2xl` | `px(16)` | `2xl` 圆角 |
+| `b_r_3xl` / `btl_r_3xl` / `btr_r_3xl` / `bbl_r_3xl` / `bbr_r_3xl` | `px(24)` | `3xl` 圆角 |
+| `b_r_full` / `btl_r_full` / `btr_r_full` / `bbl_r_full` / `bbr_r_full` | `CornerRadius::MAX` | 最大圆角，形成胶囊或圆形 |
+| `b_r_{数字}px` / `btl_r_{数字}px` / `btr_r_{数字}px` / `bbl_r_{数字}px` / `bbr_r_{数字}px` | `px({数字})` | 固定逻辑像素圆角 |
+| `b_r_{数字}per` / `btl_r_{数字}per` / `btr_r_{数字}per` / `bbl_r_{数字}per` / `bbr_r_{数字}per` | `percent({数字})` | 相对父节点对应尺寸的百分比圆角 |
+| `b_r_{数字}w` / `btl_r_{数字}w` / `btr_r_{数字}w` / `bbl_r_{数字}w` / `bbr_r_{数字}w` | `vw({数字})` | 相对视口宽度的百分比圆角 |
+| `b_r_{数字}h` / `btl_r_{数字}h` / `btr_r_{数字}h` / `bbl_r_{数字}h` / `bbr_r_{数字}h` | `vh({数字})` | 相对视口高度的百分比圆角 |
 
 数字按非负 `u16` 解析。全方向和组合方向样式会展开为具体角，再参与重复属性检查：
 
 ```rust
 bstyle!(b_r_lg)
-bstyle!(bl_r_12px br_r_12px)
+bstyle!(btl_r_12px bbr_r_12px)
 ```
 
-`b_r_lg bl_r_12px` 会报告重复属性错误；`bl_r_12px br_r_12px` 可以组合使用。未被指定的角保持原有值。
+`b_r_lg btl_r_12px` 会报告重复属性错误；`btl_r_12px bbr_r_12px` 可以组合使用。未被指定的角保持原有值。

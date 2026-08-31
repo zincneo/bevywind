@@ -17,7 +17,7 @@ pub use bevywind_macros::bstyle;
 /// The input is copied into the returned scene, so borrowed values such as a
 /// local `&String` or `&str` can be passed safely.
 /// Invalid or conflicting style classes panic when the scene is resolved.
-pub fn style_runtime<S: AsRef<str>>(classes: S) -> impl Scene {
+pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
     let classes = classes.as_ref().to_owned();
 
     SceneFunction(

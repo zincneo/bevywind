@@ -182,6 +182,10 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
         || class.starts_with("br_")
         || class.starts_with("bt_")
         || class.starts_with("bb_")
+        || class.starts_with("btl_r_")
+        || class.starts_with("btr_r_")
+        || class.starts_with("bbl_r_")
+        || class.starts_with("bbr_r_")
     {
         return border::parse(class, offset);
     }
@@ -237,10 +241,10 @@ pub fn completion_items() -> &'static [&'static str] {
         "b_r_3xl",
         "b_r_full",
         "b_r_10px",
-        "bl_r_10px",
-        "br_r_10px",
-        "bt_r_10px",
-        "bb_r_10px",
+        "btl_r_10px",
+        "btr_r_10px",
+        "bbl_r_10px",
+        "bbr_r_10px",
         "b_rrggbb",
         "b_rrggbbaa",
         "b_red",

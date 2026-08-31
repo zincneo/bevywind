@@ -9,7 +9,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
     let tokens: TokenStream2 = input.into();
     if syn::parse2::<syn::LitStr>(tokens.clone()).is_ok() {
         return compile_error(
-            "bstyle! accepts style tokens, not strings; use style_runtime for runtime strings",
+            "bstyle! accepts style tokens, not strings; use bstyle_r for runtime strings",
         );
     }
     let classes = tokens.to_string();

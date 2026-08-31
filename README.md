@@ -36,19 +36,19 @@ bstyle!("")      // 不支持
 
 ## 动态样式
 
-运行时才确定的样式使用 `style_runtime`：
+运行时才确定的样式使用 `bstyle_r`：
 
 ```rust
-use bevywind::style_runtime;
+use bevywind::bstyle_r;
 
 fn scene(classes: &String) -> impl Scene {
     bsn! {
-        style_runtime(classes)
+        bstyle_r(classes)
     }
 }
 ```
 
-`style_runtime` 接收实现 `AsRef<str>` 的值，例如 `&str`、`String` 和 `&String`。动态样式会在运行时解析。
+`bstyle_r` 接收实现 `AsRef<str>` 的值，例如 `&str`、`String` 和 `&String`。动态样式会在运行时解析。
 
 ## 样式文档
 

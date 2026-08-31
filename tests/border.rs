@@ -22,8 +22,8 @@ fn supports_border_radius_styles() {
     accepts_scene(bstyle!(b_r_3xl));
     accepts_scene(bstyle!(b_r_full));
     accepts_scene(bstyle!(b_r_10px));
-    accepts_scene(bstyle!(bl_r_10px br_r_20per));
-    accepts_scene(bstyle!(bt_r_3w bb_r_4h));
+    accepts_scene(bstyle!(btl_r_10px btr_r_20per));
+    accepts_scene(bstyle!(bbl_r_3w bbr_r_4h));
 }
 
 #[test]
@@ -83,20 +83,20 @@ fn expands_all_border_widths_and_colors() {
 fn rejects_overlapping_border_sides() {
     assert!(parse_classes("b_1px bl_2px").is_err());
     assert!(parse_classes("b_ffffff bl_112233").is_err());
-    assert!(parse_classes("b_r_lg bl_r_2px").is_err());
-    assert!(parse_classes("bl_r_2px bt_r_3px").is_err());
+    assert!(parse_classes("b_r_lg btl_r_2px").is_err());
+    assert!(parse_classes("btl_r_2px btl_r_3px").is_err());
 }
 
 #[test]
 fn expands_border_radius_to_the_expected_corners() {
-    let rules = parse_classes("bl_r_10px").unwrap();
-    assert_eq!(rules.len(), 2);
-    assert!(rules.iter().all(|rule| {
-        matches!(
-            rule.property,
-            Property::BorderRadiusTopLeft | Property::BorderRadiusBottomLeft
-        ) && rule.value == Value::RadiusPixels(10)
-    }));
+    let rules = parse_classes("btl_r_10px").unwrap();
+    assert_eq!(
+        rules,
+        vec![bevywind_core::StyleRule {
+            property: Property::BorderRadiusTopLeft,
+            value: Value::RadiusPixels(10),
+        }]
+    );
 }
 
 #[test]

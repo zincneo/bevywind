@@ -3,10 +3,10 @@ use crate::{Property, StyleError, StyleRule, Value, error};
 pub(crate) fn parse(class: &str, offset: usize) -> Result<StyleRule, StyleError> {
     if class == "b_r"
         || class.starts_with("b_r_")
-        || class.starts_with("bl_r_")
-        || class.starts_with("br_r_")
-        || class.starts_with("bt_r_")
-        || class.starts_with("bb_r_")
+        || class.starts_with("btl_r_")
+        || class.starts_with("btr_r_")
+        || class.starts_with("bbl_r_")
+        || class.starts_with("bbr_r_")
     {
         return parse_radius(class, offset);
     }
@@ -51,45 +51,17 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
             ],
         );
     }
-    if class.starts_with("bl_r_") {
-        return expand_radius(
-            class,
-            offset,
-            &[
-                Property::BorderRadiusTopLeft,
-                Property::BorderRadiusBottomLeft,
-            ],
-        );
+    if class.starts_with("btl_r_") {
+        return expand_radius(class, offset, &[Property::BorderRadiusTopLeft]);
     }
-    if class.starts_with("br_r_") {
-        return expand_radius(
-            class,
-            offset,
-            &[
-                Property::BorderRadiusTopRight,
-                Property::BorderRadiusBottomRight,
-            ],
-        );
+    if class.starts_with("btr_r_") {
+        return expand_radius(class, offset, &[Property::BorderRadiusTopRight]);
     }
-    if class.starts_with("bt_r_") {
-        return expand_radius(
-            class,
-            offset,
-            &[
-                Property::BorderRadiusTopLeft,
-                Property::BorderRadiusTopRight,
-            ],
-        );
+    if class.starts_with("bbl_r_") {
+        return expand_radius(class, offset, &[Property::BorderRadiusBottomLeft]);
     }
-    if class.starts_with("bb_r_") {
-        return expand_radius(
-            class,
-            offset,
-            &[
-                Property::BorderRadiusBottomLeft,
-                Property::BorderRadiusBottomRight,
-            ],
-        );
+    if class.starts_with("bbr_r_") {
+        return expand_radius(class, offset, &[Property::BorderRadiusBottomRight]);
     }
     let (prefix, properties) = if class.starts_with("b_") {
         if crate::color::parse_value(&class[2..], class, offset).is_ok() {
@@ -132,14 +104,14 @@ pub(crate) fn expansion(class: &str, offset: usize) -> Option<Result<Vec<StyleRu
 }
 
 fn parse_radius(class: &str, offset: usize) -> Result<StyleRule, StyleError> {
-    let (prefix, property) = if class.starts_with("bl_r_") {
-        ("bl_r_", Property::BorderRadiusTopLeft)
-    } else if class.starts_with("br_r_") {
-        ("br_r_", Property::BorderRadiusTopRight)
-    } else if class.starts_with("bt_r_") {
-        ("bt_r_", Property::BorderRadiusTopLeft)
-    } else if class.starts_with("bb_r_") {
-        ("bb_r_", Property::BorderRadiusBottomLeft)
+    let (prefix, property) = if class.starts_with("btl_r_") {
+        ("btl_r_", Property::BorderRadiusTopLeft)
+    } else if class.starts_with("btr_r_") {
+        ("btr_r_", Property::BorderRadiusTopRight)
+    } else if class.starts_with("bbl_r_") {
+        ("bbl_r_", Property::BorderRadiusBottomLeft)
+    } else if class.starts_with("bbr_r_") {
+        ("bbr_r_", Property::BorderRadiusBottomRight)
     } else if class == "b_r" {
         ("b_r", Property::BorderRadiusTopLeft)
     } else {
@@ -201,7 +173,7 @@ fn expand_radius(
     } else if class.starts_with("b_r_") {
         4
     } else {
-        5
+        6
     };
     let value = match parse_radius_value(&class[prefix_len..], class, offset) {
         Ok(value) => value,
