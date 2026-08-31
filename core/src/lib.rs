@@ -6,6 +6,7 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod overflow;
 mod position;
 mod typography;
 mod units;
@@ -57,6 +58,8 @@ pub enum Property {
     Right,
     Top,
     Bottom,
+    OverflowX,
+    OverflowY,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -122,6 +125,10 @@ pub enum Value {
     NegativePercent(u16),
     NegativeViewportWidth(u16),
     NegativeViewportHeight(u16),
+    OverflowVisible,
+    OverflowClip,
+    OverflowHidden,
+    OverflowScroll,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -156,11 +163,14 @@ pub fn parse_classes(input: &str) -> Result<Vec<StyleRule>, StyleError> {
         search_from = offset + class.len();
         let rules_for_class = match flex::expansion(class, offset) {
             Some(rules) => rules?,
-            None => match dimension::expansion(class, offset) {
+            None => match overflow::expansion(class, offset) {
                 Some(rules) => rules?,
-                None => match border::expansion(class, offset) {
+                None => match dimension::expansion(class, offset) {
                     Some(rules) => rules?,
-                    None => vec![parse_class(class, offset)?],
+                    None => match border::expansion(class, offset) {
+                        Some(rules) => rules?,
+                        None => vec![parse_class(class, offset)?],
+                    },
                 },
             },
         };
@@ -185,6 +195,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
         return rule;
     }
     if let Some(rule) = position::parse(class, offset) {
+        return rule;
+    }
+    if let Some(rule) = overflow::parse(class, offset) {
         return rule;
     }
     if class.starts_with("bg_") {
@@ -279,6 +292,18 @@ pub fn completion_items() -> &'static [&'static str] {
         "right_n_10px",
         "bottom_n_10px",
         "left_n_10px",
+        "overflow_visible",
+        "overflow_clip",
+        "overflow_hidden",
+        "overflow_scroll",
+        "overflow_x_visible",
+        "overflow_x_clip",
+        "overflow_x_hidden",
+        "overflow_x_scroll",
+        "overflow_y_visible",
+        "overflow_y_clip",
+        "overflow_y_hidden",
+        "overflow_y_scroll",
         "b_rrggbb",
         "b_rrggbbaa",
         "b_red",

@@ -46,6 +46,11 @@ fn parses_runtime_typography_styles() {
 }
 
 #[test]
+fn parses_runtime_overflow_styles() {
+    accepts_scene(bstyle_r("overflow_x_clip overflow_y_scroll"));
+}
+
+#[test]
 #[should_panic(expected = "failed to expand runtime styles")]
 fn panics_when_runtime_styles_fail_to_expand() {
     let mut app = App::new();

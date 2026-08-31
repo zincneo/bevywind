@@ -43,6 +43,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 Property::Right => quote! { right },
                 Property::Top => quote! { top },
                 Property::Bottom => quote! { bottom },
+                Property::OverflowX | Property::OverflowY => return None,
                 Property::MarginLeft
                 | Property::MarginRight
                 | Property::MarginTop
@@ -107,6 +108,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
         quote! { border },
     );
     let border_radius = radius_tokens(&rules);
+    let (overflow_helper, overflow) = overflow_tokens(&rules);
     let node = quote! {
         Node {
             #(#fields,)*
@@ -114,6 +116,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             #padding
             #border
             #border_radius
+            #overflow
         }
     };
     let backgrounds = rules.iter().filter_map(|rule| {
@@ -215,6 +218,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
         {
             use ::bevy::color::Color;
             use ::bevy::ui::{BackgroundColor, Node};
+            #overflow_helper
             ::bevy::scene::bsn! {
             #node
             #(#backgrounds)*
@@ -272,6 +276,10 @@ fn value_tokens(value: Value) -> TokenStream2 {
         Value::NegativeViewportHeight(value) => {
             quote! { { ::bevy::ui::vh(-(#value as f32)) } }
         }
+        Value::OverflowVisible
+        | Value::OverflowClip
+        | Value::OverflowHidden
+        | Value::OverflowScroll => unreachable!("overflow values are emitted separately"),
         Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
         Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
         Value::RadiusViewportWidth(value) => quote! { { ::bevy::ui::vw(#value) } },
@@ -297,6 +305,43 @@ fn value_tokens(value: Value) -> TokenStream2 {
         | Value::FontStyleNormal
         | Value::FontStyleItalic
         | Value::RadiusFull => unreachable!("value is emitted separately"),
+    }
+}
+
+fn overflow_tokens(
+    rules: &[bevywind_core::StyleRule],
+) -> (Option<TokenStream2>, Option<TokenStream2>) {
+    let properties = [Property::OverflowX, Property::OverflowY];
+    if !rules.iter().any(|rule| properties.contains(&rule.property)) {
+        return (None, None);
+    }
+    let values = properties.map(|property| {
+        rules
+            .iter()
+            .find(|rule| rule.property == property)
+            .map_or_else(
+                || quote! { ::bevy::ui::OverflowAxis::Visible },
+                |rule| overflow_value_tokens(rule.value),
+            )
+    });
+    let [x, y] = values;
+    let helper = quote! {
+        fn __bevywind_overflow() -> ::bevy::ui::Overflow {
+            ::bevy::ui::Overflow { x: #x, y: #y }
+        }
+    };
+    (
+        Some(helper),
+        Some(quote! { overflow: __bevywind_overflow(), }),
+    )
+}
+
+fn overflow_value_tokens(value: Value) -> TokenStream2 {
+    match value {
+        Value::OverflowVisible => quote! { ::bevy::ui::OverflowAxis::Visible },
+        Value::OverflowClip | Value::OverflowHidden => quote! { ::bevy::ui::OverflowAxis::Clip },
+        Value::OverflowScroll => quote! { ::bevy::ui::OverflowAxis::Scroll },
+        _ => unreachable!("only overflow values are emitted here"),
     }
 }
 

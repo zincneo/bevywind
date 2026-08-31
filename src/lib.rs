@@ -8,6 +8,7 @@ mod border;
 mod color;
 mod dimension;
 mod flex;
+mod overflow;
 mod position;
 mod typography;
 mod units;
@@ -83,6 +84,10 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::Bottom => {
                         let node = scene.get_or_insert_template::<Node>(context);
                         position::apply(node, rule.property, rule.value);
+                    }
+                    Property::OverflowX | Property::OverflowY => {
+                        let node = scene.get_or_insert_template::<Node>(context);
+                        overflow::apply(node, rule.property, rule.value);
                     }
                     Property::BorderLeft
                     | Property::BorderRight
