@@ -71,6 +71,11 @@ fn parses_runtime_ui_transform_styles() {
 }
 
 #[test]
+fn parses_runtime_z_index_styles() {
+    accepts_scene(bstyle_r("z_n_10 gz_100"));
+}
+
+#[test]
 fn resolves_runtime_ui_transform_scene() {
     let mut app = App::new();
     app.add_plugins(AssetPlugin::default());

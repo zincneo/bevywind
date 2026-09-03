@@ -12,6 +12,7 @@ mod position;
 mod transform;
 mod typography;
 mod units;
+mod z_index;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Property {
@@ -79,6 +80,8 @@ pub enum Property {
     ScaleX,
     ScaleY,
     Rotation,
+    ZIndex,
+    GlobalZIndex,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -168,6 +171,8 @@ pub enum Value {
     ImageFlipY,
     Rotation(u16),
     NegativeRotation(u16),
+    ZIndex(i32),
+    GlobalZIndex(i32),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -285,6 +290,9 @@ pub fn parse_class(class: &str, offset: usize) -> Result<StyleRule, StyleError> 
         return rule;
     }
     if let Some(rule) = transform::parse(class, offset) {
+        return rule;
+    }
+    if let Some(rule) = z_index::parse(class, offset) {
         return rule;
     }
     if class.starts_with("bg_") {
@@ -417,5 +425,9 @@ pub fn completion_items() -> &'static [&'static str] {
         "bgi_no_repeat",
         "bgi_flip_x",
         "bgi_flip_y",
+        "z_10",
+        "z_n_10",
+        "gz_100",
+        "gz_n_100",
     ]
 }

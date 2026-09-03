@@ -14,6 +14,7 @@ mod position;
 mod transform;
 mod typography;
 mod units;
+mod z_index;
 
 pub use bevywind_macros::bstyle;
 
@@ -84,6 +85,9 @@ pub fn bstyle_r<S: AsRef<str>>(classes: S) -> impl Scene {
                     | Property::ScaleY
                     | Property::Rotation => {
                         transform::apply(scene, context, rule.property, rule.value)
+                    }
+                    Property::ZIndex | Property::GlobalZIndex => {
+                        z_index::apply(scene, context, rule.property, rule.value)
                     }
                     Property::Display
                     | Property::FlexDirection

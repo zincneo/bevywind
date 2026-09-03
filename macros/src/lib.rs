@@ -61,6 +61,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
                 | Property::ScaleX
                 | Property::ScaleY
                 | Property::Rotation => return None,
+                Property::ZIndex | Property::GlobalZIndex => return None,
                 Property::MarginLeft
                 | Property::MarginRight
                 | Property::MarginTop
@@ -128,6 +129,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
     let (overflow_helper, overflow) = overflow_tokens(&rules);
     let image_node = image_tokens(&rules);
     let transform = transform_tokens(&rules);
+    let z_index = z_index_tokens(&rules);
     let node = quote! {
         Node {
             #(#fields,)*
@@ -236,7 +238,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
     quote! {
         {
             use ::bevy::color::Color;
-            use ::bevy::ui::{BackgroundColor, Node};
+            use ::bevy::ui::{BackgroundColor, GlobalZIndex, Node, ZIndex};
             use ::bevy::ui::widget::{ImageNode, NodeImageMode};
             use ::bevy::ui::UiTransform;
             #overflow_helper
@@ -244,6 +246,7 @@ pub fn bstyle(input: TokenStream) -> TokenStream {
             #node
             #image_node
             #transform
+            #z_index
             #(#backgrounds)*
             #border_colors
             #(#text_colors)*
@@ -324,6 +327,9 @@ fn value_tokens(value: Value) -> TokenStream2 {
         }
         Value::Rotation(_) | Value::NegativeRotation(_) => {
             unreachable!("transform values are emitted separately")
+        }
+        Value::ZIndex(_) | Value::GlobalZIndex(_) => {
+            unreachable!("z-index values are emitted separately")
         }
         Value::RadiusPixels(value) => quote! { { ::bevy::ui::px(#value) } },
         Value::RadiusPercent(value) => quote! { { ::bevy::ui::percent(#value) } },
@@ -627,6 +633,23 @@ fn rotation_tokens(value: &Value) -> TokenStream2 {
             quote! { ::bevy::math::Rot2::degrees(-(#value as f32)) }
         }
         _ => unreachable!("only rotation values are emitted here"),
+    }
+}
+
+fn z_index_tokens(rules: &[bevywind_core::StyleRule]) -> Option<TokenStream2> {
+    let z_index = rules.iter().find_map(|rule| match rule.value {
+        Value::ZIndex(value) => Some(quote! { ZIndex(#value) }),
+        _ => None,
+    });
+    let global_z_index = rules.iter().find_map(|rule| match rule.value {
+        Value::GlobalZIndex(value) => Some(quote! { GlobalZIndex(#value) }),
+        _ => None,
+    });
+    match (z_index, global_z_index) {
+        (Some(z_index), Some(global_z_index)) => Some(quote! { #z_index #global_z_index }),
+        (Some(z_index), None) => Some(quote! { #z_index }),
+        (None, Some(global_z_index)) => Some(quote! { #global_z_index }),
+        (None, None) => None,
     }
 }
 
